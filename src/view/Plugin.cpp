@@ -120,7 +120,7 @@ void load_gfx(void* handle)
     FUNC(g_core.plugin_funcs.change_window, CHANGEWINDOW, dummy_void, "ChangeWindow");
     FUNC(g_core.plugin_funcs.close_dll_gfx, CLOSEDLL_GFX, dummy_void, "CloseDLL");
     FUNC(g_core.plugin_funcs.initiate_gfx, INITIATEGFX, dummy_initiateGFX, "InitiateGFX");
-    FUNC(g_core.plugin_funcs.process_d_list, PROCESSDLIST, dummy_void, "ProcessDList");
+    FUNC(g_core.plugin_funcs.process_dlist, PROCESSDLIST, dummy_void, "ProcessDList");
     FUNC(g_core.plugin_funcs.process_rdp_list, PROCESSRDPLIST, dummy_void, "ProcessRDPList");
     FUNC(g_core.plugin_funcs.rom_closed_gfx, ROMCLOSED_GFX, dummy_void, "RomClosed");
     FUNC(g_core.plugin_funcs.rom_open_gfx, ROMOPEN_GFX, dummy_void, "RomOpen");
@@ -277,7 +277,7 @@ void load_rsp(void* handle)
     rsp_info.DPC_PIPEBUSY_REG = &g_core.dpc_register->dpc_pipebusy;
     rsp_info.DPC_TMEM_REG = &g_core.dpc_register->dpc_tmem;
     rsp_info.CheckInterrupts = dummy_void;
-    rsp_info.ProcessDlistList = g_core.plugin_funcs.process_d_list;
+    rsp_info.ProcessDlistList = g_core.plugin_funcs.process_dlist;
     rsp_info.ProcessAlistList = g_core.plugin_funcs.process_a_list;
     rsp_info.ProcessRdpList = g_core.plugin_funcs.process_rdp_list;
     rsp_info.ShowCFB = g_core.plugin_funcs.show_cfb;
@@ -566,7 +566,7 @@ void setup_dummy_info()
     dummy_rsp_info.DPC_PIPEBUSY_REG = &g_core.dpc_register->dpc_pipebusy;
     dummy_rsp_info.DPC_TMEM_REG = &g_core.dpc_register->dpc_tmem;
     dummy_rsp_info.CheckInterrupts = dummy_void;
-    dummy_rsp_info.ProcessDlistList = g_core.plugin_funcs.process_d_list;
+    dummy_rsp_info.ProcessDlistList = g_core.plugin_funcs.process_dlist;
     dummy_rsp_info.ProcessAlistList = g_core.plugin_funcs.process_a_list;
     dummy_rsp_info.ProcessRdpList = g_core.plugin_funcs.process_rdp_list;
     dummy_rsp_info.ShowCFB = g_core.plugin_funcs.show_cfb;

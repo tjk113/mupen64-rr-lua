@@ -61,7 +61,7 @@ typedef struct {
 typedef struct {
     CLOSEDLL_GFX close_dll_gfx;
     INITIATEGFX initiate_gfx;
-    PROCESSDLIST process_d_list;
+    PROCESSDLIST process_dlist;
     PROCESSRDPLIST process_rdp_list;
     ROMCLOSED_GFX rom_closed_gfx;
     ROMOPEN_GFX rom_open_gfx;
