@@ -41,6 +41,10 @@ namespace EncodingManager
 	std::unique_ptr<Encoder> m_encoder;
 	std::recursive_mutex m_mutex;
 
+    HDC hy_main_dc = nullptr;
+    HDC hy_dc = nullptr;
+    HBITMAP hy_bmp = nullptr;
+    
 	void readscreen_plugin(int32_t* width = nullptr, int32_t* height = nullptr)
 	{
 		if (core_vr_get_mge_available())
@@ -146,11 +150,15 @@ namespace EncodingManager
 			}
 
 			GdiFlush();
-
-			HDC dc = GetDC(g_main_hwnd);
-			HDC compat_dc = CreateCompatibleDC(dc);
-			HBITMAP bitmap = CreateCompatibleBitmap(dc, m_video_width, m_video_height);
-			SelectObject(compat_dc, bitmap);
+		    
+            if (!hy_dc)
+            {
+                g_view_logger->trace("Creating hybrid capture resources...");
+                hy_main_dc = GetDC(g_main_hwnd);
+                hy_dc = CreateCompatibleDC(hy_main_dc);
+                hy_bmp = CreateCompatibleBitmap(hy_main_dc, m_video_width, m_video_height);
+                SelectObject(hy_dc, hy_bmp);
+            }
 
 			{
 				BITMAPINFO bmp_info{};
@@ -162,7 +170,7 @@ namespace EncodingManager
 				bmp_info.bmiHeader.biCompression = BI_RGB;
 
 				// Copy the raw readscreen output
-				StretchDIBits(compat_dc,
+				StretchDIBits(hy_dc,
 				              0,
 				              0,
 				              raw_video_width,
@@ -181,14 +189,14 @@ namespace EncodingManager
 			{
                 if (pair.second->presenter)
                 {
-					pair.second->presenter->blit(compat_dc, {0, 0, (LONG)pair.second->presenter->size().width, (LONG)pair.second->presenter->size().height});
+					pair.second->presenter->blit(hy_dc, {0, 0, (LONG)pair.second->presenter->size().width, (LONG)pair.second->presenter->size().height});
                 }
 			}
 
 			// Then, blit the GDI back DCs
 			for (auto& pair : g_hwnd_lua_map)
 			{
-				TransparentBlt(compat_dc, 0, 0, pair.second->dc_size.width, pair.second->dc_size.height, pair.second->gdi_back_dc, 0, 0,
+				TransparentBlt(hy_dc, 0, 0, pair.second->dc_size.width, pair.second->dc_size.height, pair.second->gdi_back_dc, 0, 0,
 				               pair.second->dc_size.width, pair.second->dc_size.height, lua_gdi_color_mask);
 			}
 
@@ -200,12 +208,7 @@ namespace EncodingManager
 			bmp_info.bmiHeader.biBitCount = 24;
 			bmp_info.bmiHeader.biCompression = BI_RGB;
 
-			GetDIBits(compat_dc, bitmap, 0, m_video_height, m_video_buf, &bmp_info, DIB_RGB_COLORS);
-
-			SelectObject(compat_dc, nullptr);
-			DeleteObject(bitmap);
-			DeleteDC(compat_dc);
-			ReleaseDC(g_main_hwnd, dc);
+			GetDIBits(hy_dc, hy_bmp, 0, m_video_height, m_video_buf, &bmp_info, DIB_RGB_COLORS);
 		});
 	}
 
@@ -277,7 +280,7 @@ namespace EncodingManager
 	    {
 	        return true;
 	    }
-
+	    
 	    if (!m_encoder->stop())
 	    {
 	        FrontendService::show_dialog(L"Failed to stop encoding.", L"Capture", fsvc_error);
@@ -286,6 +289,19 @@ namespace EncodingManager
 
 	    m_encoder.release();
 
+	    g_main_window_dispatcher->invoke([] {
+            SelectObject(hy_dc, nullptr);
+	        
+            DeleteObject(hy_bmp);
+	        hy_bmp = nullptr;
+	        
+            DeleteDC(hy_dc);
+	        hy_dc = nullptr;
+	        
+            ReleaseDC(g_main_hwnd, hy_main_dc);
+	        hy_main_dc = nullptr;
+        });
+	    
 	    m_capturing = false;
 	    g_config.core.render_throttling = true;
 	    
