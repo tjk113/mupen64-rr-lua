@@ -85,7 +85,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>src/core;lib/;lib/zlib;lib/libdeflate;lib/xxhash;lib/json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src/Core;lib/;lib/zlib;lib/libdeflate;lib/xxhash;lib/json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_WIN32;_DEBUG;_WINDOWS;__WIN32__;X86;_CRT_SECURE_NO_WARNINGS;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -108,7 +108,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>src/core;lib/;lib/zlib;lib/libdeflate;lib/xxhash;lib/json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src/Core;lib/;lib/zlib;lib/libdeflate;lib/xxhash;lib/json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WarningLevel>Level3</WarningLevel>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -131,7 +131,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>src/core;lib/;lib/zlib;lib/libdeflate-x64;lib/xxhash;lib/json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src/Core;lib/;lib/zlib;lib/libdeflate-x64;lib/xxhash;lib/json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -149,7 +149,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>src/core;lib/;lib/zlib;lib/libdeflate-x64;lib/xxhash;lib/json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src/Core;lib/;lib/zlib;lib/libdeflate-x64;lib/xxhash;lib/json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WarningLevel>Level3</WarningLevel>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -171,36 +171,36 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="lib\IOHelpers.h" />
-    <ClInclude Include="src\core\Core.h" />
-    <ClInclude Include="src\core\cheats.h" />
-    <ClInclude Include="src\core\include\core_types.h" />
-    <ClInclude Include="src\core\include\core_api.h" />
-    <ClInclude Include="src\core\stdafx.h" />
-    <ClInclude Include="src\core\memory\pif_lut.h" />
-    <ClInclude Include="src\core\memory\dma.h" />
-    <ClInclude Include="src\core\memory\flashram.h" />
-    <ClInclude Include="src\core\memory\memory.h" />
-    <ClInclude Include="src\core\memory\pif.h" />
-    <ClInclude Include="src\core\memory\savestates.h" />
-    <ClInclude Include="src\core\memory\summercart.h" />
-    <ClInclude Include="src\core\memory\tlb.h" />
-    <ClInclude Include="src\core\r4300\debugger.h" />
-    <ClInclude Include="src\core\r4300\ops.h" />
-    <ClInclude Include="src\core\r4300\cop1_helpers.h" />
-    <ClInclude Include="src\core\r4300\disasm.h" />
-    <ClInclude Include="src\core\r4300\exception.h" />
-    <ClInclude Include="src\core\r4300\interrupt.h" />
-    <ClInclude Include="src\core\r4300\macros.h" />
-    <ClInclude Include="src\core\r4300\r4300.h" />
-    <ClInclude Include="src\core\r4300\recomp.h" />
-    <ClInclude Include="src\core\r4300\recomph.h" />
-    <ClInclude Include="src\core\r4300\rom.h" />
-    <ClInclude Include="src\core\r4300\timers.h" />
-    <ClInclude Include="src\core\r4300\tracelog.h" />
-    <ClInclude Include="src\core\r4300\vcr.h" />
-    <ClInclude Include="src\core\r4300\x86\assemble.h" />
-    <ClInclude Include="src\core\r4300\x86\gcop1_helpers.h" />
-    <ClInclude Include="src\core\r4300\x86\regcache.h" />
+    <ClInclude Include="src\Core\Core.h" />
+    <ClInclude Include="src\Core\cheats.h" />
+    <ClInclude Include="src\Core\include\core_types.h" />
+    <ClInclude Include="src\Core\include\core_api.h" />
+    <ClInclude Include="src\Core\stdafx.h" />
+    <ClInclude Include="src\Core\memory\pif_lut.h" />
+    <ClInclude Include="src\Core\memory\dma.h" />
+    <ClInclude Include="src\Core\memory\flashram.h" />
+    <ClInclude Include="src\Core\memory\memory.h" />
+    <ClInclude Include="src\Core\memory\pif.h" />
+    <ClInclude Include="src\Core\memory\savestates.h" />
+    <ClInclude Include="src\Core\memory\summercart.h" />
+    <ClInclude Include="src\Core\memory\tlb.h" />
+    <ClInclude Include="src\Core\r4300\debugger.h" />
+    <ClInclude Include="src\Core\r4300\ops.h" />
+    <ClInclude Include="src\Core\r4300\cop1_helpers.h" />
+    <ClInclude Include="src\Core\r4300\disasm.h" />
+    <ClInclude Include="src\Core\r4300\exception.h" />
+    <ClInclude Include="src\Core\r4300\interrupt.h" />
+    <ClInclude Include="src\Core\r4300\macros.h" />
+    <ClInclude Include="src\Core\r4300\r4300.h" />
+    <ClInclude Include="src\Core\r4300\recomp.h" />
+    <ClInclude Include="src\Core\r4300\recomph.h" />
+    <ClInclude Include="src\Core\r4300\rom.h" />
+    <ClInclude Include="src\Core\r4300\timers.h" />
+    <ClInclude Include="src\Core\r4300\tracelog.h" />
+    <ClInclude Include="src\Core\r4300\vcr.h" />
+    <ClInclude Include="src\Core\r4300\x86\assemble.h" />
+    <ClInclude Include="src\Core\r4300\x86\gcop1_helpers.h" />
+    <ClInclude Include="src\Core\r4300\x86\regcache.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="lib\IOHelpers.cpp">
@@ -215,59 +215,59 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="src\core\stdafx.cpp">
+    <ClCompile Include="src\Core\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="src\core\Core.cpp" />
-    <ClCompile Include="src\core\cheats.cpp" />
-    <ClCompile Include="src\core\memory\pif_lut.cpp" />
-    <ClCompile Include="src\core\memory\dma.cpp" />
-    <ClCompile Include="src\core\memory\flashram.cpp" />
-    <ClCompile Include="src\core\memory\memory.cpp" />
-    <ClCompile Include="src\core\memory\pif.cpp" />
-    <ClCompile Include="src\core\memory\savestates.cpp" />
-    <ClCompile Include="src\core\memory\summercart.cpp" />
-    <ClCompile Include="src\core\memory\tlb.cpp" />
-    <ClCompile Include="src\core\r4300\debugger.cpp" />
-    <ClCompile Include="src\core\r4300\pure_interp.cpp" />
-    <ClCompile Include="src\core\r4300\cop0.cpp" />
-    <ClCompile Include="src\core\r4300\cop1.cpp" />
-    <ClCompile Include="src\core\r4300\cop1_d.cpp" />
-    <ClCompile Include="src\core\r4300\cop1_helpers.cpp" />
-    <ClCompile Include="src\core\r4300\cop1_l.cpp" />
-    <ClCompile Include="src\core\r4300\cop1_s.cpp" />
-    <ClCompile Include="src\core\r4300\cop1_w.cpp" />
-    <ClCompile Include="src\core\r4300\disasm.cpp" />
-    <ClCompile Include="src\core\r4300\exception.cpp" />
-    <ClCompile Include="src\core\r4300\interrupt.cpp" />
-    <ClCompile Include="src\core\r4300\r4300.cpp" />
-    <ClCompile Include="src\core\r4300\recomp.cpp" />
-    <ClCompile Include="src\core\r4300\regimm.cpp" />
-    <ClCompile Include="src\core\r4300\rom.cpp" />
-    <ClCompile Include="src\core\r4300\special.cpp" />
-    <ClCompile Include="src\core\r4300\timers.cpp" />
-    <ClCompile Include="src\core\r4300\tracelog.cpp" />
-    <ClCompile Include="src\core\r4300\vcr.cpp" />
-    <ClCompile Include="src\core\r4300\x86\assemble.cpp" />
-    <ClCompile Include="src\core\r4300\x86\debug.cpp" />
-    <ClCompile Include="src\core\r4300\x86\gbc.cpp" />
-    <ClCompile Include="src\core\r4300\x86\gcop0.cpp" />
-    <ClCompile Include="src\core\r4300\x86\gcop1.cpp" />
-    <ClCompile Include="src\core\r4300\x86\gcop1_d.cpp" />
-    <ClCompile Include="src\core\r4300\x86\gcop1_helpers.cpp" />
-    <ClCompile Include="src\core\r4300\x86\gcop1_l.cpp" />
-    <ClCompile Include="src\core\r4300\x86\gcop1_s.cpp" />
-    <ClCompile Include="src\core\r4300\x86\gcop1_w.cpp" />
-    <ClCompile Include="src\core\r4300\x86\gr4300.cpp" />
-    <ClCompile Include="src\core\r4300\x86\gregimm.cpp" />
-    <ClCompile Include="src\core\r4300\x86\gspecial.cpp" />
-    <ClCompile Include="src\core\r4300\x86\gtlb.cpp" />
-    <ClCompile Include="src\core\r4300\x86\regcache.cpp" />
-    <ClCompile Include="src\core\r4300\x86\rjump.cpp" />
-    <ClCompile Include="src\core\r4300\bc.cpp" />
+    <ClCompile Include="src\Core\Core.cpp" />
+    <ClCompile Include="src\Core\cheats.cpp" />
+    <ClCompile Include="src\Core\memory\pif_lut.cpp" />
+    <ClCompile Include="src\Core\memory\dma.cpp" />
+    <ClCompile Include="src\Core\memory\flashram.cpp" />
+    <ClCompile Include="src\Core\memory\memory.cpp" />
+    <ClCompile Include="src\Core\memory\pif.cpp" />
+    <ClCompile Include="src\Core\memory\savestates.cpp" />
+    <ClCompile Include="src\Core\memory\summercart.cpp" />
+    <ClCompile Include="src\Core\memory\tlb.cpp" />
+    <ClCompile Include="src\Core\r4300\debugger.cpp" />
+    <ClCompile Include="src\Core\r4300\pure_interp.cpp" />
+    <ClCompile Include="src\Core\r4300\cop0.cpp" />
+    <ClCompile Include="src\Core\r4300\cop1.cpp" />
+    <ClCompile Include="src\Core\r4300\cop1_d.cpp" />
+    <ClCompile Include="src\Core\r4300\cop1_helpers.cpp" />
+    <ClCompile Include="src\Core\r4300\cop1_l.cpp" />
+    <ClCompile Include="src\Core\r4300\cop1_s.cpp" />
+    <ClCompile Include="src\Core\r4300\cop1_w.cpp" />
+    <ClCompile Include="src\Core\r4300\disasm.cpp" />
+    <ClCompile Include="src\Core\r4300\exception.cpp" />
+    <ClCompile Include="src\Core\r4300\interrupt.cpp" />
+    <ClCompile Include="src\Core\r4300\r4300.cpp" />
+    <ClCompile Include="src\Core\r4300\recomp.cpp" />
+    <ClCompile Include="src\Core\r4300\regimm.cpp" />
+    <ClCompile Include="src\Core\r4300\rom.cpp" />
+    <ClCompile Include="src\Core\r4300\special.cpp" />
+    <ClCompile Include="src\Core\r4300\timers.cpp" />
+    <ClCompile Include="src\Core\r4300\tracelog.cpp" />
+    <ClCompile Include="src\Core\r4300\vcr.cpp" />
+    <ClCompile Include="src\Core\r4300\x86\assemble.cpp" />
+    <ClCompile Include="src\Core\r4300\x86\debug.cpp" />
+    <ClCompile Include="src\Core\r4300\x86\gbc.cpp" />
+    <ClCompile Include="src\Core\r4300\x86\gcop0.cpp" />
+    <ClCompile Include="src\Core\r4300\x86\gcop1.cpp" />
+    <ClCompile Include="src\Core\r4300\x86\gcop1_d.cpp" />
+    <ClCompile Include="src\Core\r4300\x86\gcop1_helpers.cpp" />
+    <ClCompile Include="src\Core\r4300\x86\gcop1_l.cpp" />
+    <ClCompile Include="src\Core\r4300\x86\gcop1_s.cpp" />
+    <ClCompile Include="src\Core\r4300\x86\gcop1_w.cpp" />
+    <ClCompile Include="src\Core\r4300\x86\gr4300.cpp" />
+    <ClCompile Include="src\Core\r4300\x86\gregimm.cpp" />
+    <ClCompile Include="src\Core\r4300\x86\gspecial.cpp" />
+    <ClCompile Include="src\Core\r4300\x86\gtlb.cpp" />
+    <ClCompile Include="src\Core\r4300\x86\regcache.cpp" />
+    <ClCompile Include="src\Core\r4300\x86\rjump.cpp" />
+    <ClCompile Include="src\Core\r4300\bc.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
