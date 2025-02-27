@@ -132,16 +132,7 @@ namespace EncodingManager
 	void readscreen_hybrid()
 	{
 		int32_t raw_video_width, raw_video_height;
-
 		readscreen_plugin(&raw_video_width, &raw_video_height);
-
-		BITMAPINFO rs_bmp_info{};
-		rs_bmp_info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-		rs_bmp_info.bmiHeader.biPlanes = 1;
-		rs_bmp_info.bmiHeader.biBitCount = 24;
-		rs_bmp_info.bmiHeader.biCompression = BI_RGB;
-		rs_bmp_info.bmiHeader.biWidth = m_video_width;
-		rs_bmp_info.bmiHeader.biHeight = m_video_height;
 
 		// UI resources, must be accessed from UI thread
 		// To avoid GDI weirdness with cross-thread resources, we do all GDI work on UI thread.
