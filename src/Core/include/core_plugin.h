@@ -217,18 +217,18 @@ typedef union {
     };
 } core_buttons;
 
-typedef void(__cdecl* GETDLLINFO)(core_plugin_info*);
+typedef void(__cdecl* CLOSEDLL)();
+typedef void(__cdecl* DLLABOUT)(void*);
 typedef void(__cdecl* DLLCONFIG)(void*);
 typedef void(__cdecl* DLLTEST)(void*);
-typedef void(__cdecl* DLLABOUT)(void*);
+typedef void(__cdecl* GETDLLINFO)(core_plugin_info*);
+typedef void(__cdecl* ROMCLOSED)();
+typedef void(__cdecl* ROMOPEN)();
 
 typedef void(__cdecl* CHANGEWINDOW)();
-typedef void(__cdecl* CLOSEDLL_GFX)();
 typedef int32_t(__cdecl* INITIATEGFX)(core_gfx_info);
 typedef void(__cdecl* PROCESSDLIST)();
 typedef void(__cdecl* PROCESSRDPLIST)();
-typedef void(__cdecl* ROMCLOSED_GFX)();
-typedef void(__cdecl* ROMOPEN_GFX)();
 typedef void(__cdecl* SHOWCFB)();
 typedef void(__cdecl* UPDATESCREEN)();
 typedef void(__cdecl* VISTATUSCHANGED)();
@@ -246,29 +246,21 @@ typedef void(__cdecl* FBGETFRAMEBUFFERINFO)(void*);
 typedef void(__cdecl* AIDACRATECHANGED)(int32_t system_type);
 typedef void(__cdecl* AILENCHANGED)();
 typedef uint32_t(__cdecl* AIREADLENGTH)();
-typedef void(__cdecl* CLOSEDLL_AUDIO)();
 typedef int32_t(__cdecl* INITIATEAUDIO)(core_audio_info);
 typedef void(__cdecl* PROCESSALIST)();
-typedef void(__cdecl* ROMCLOSED_AUDIO)();
-typedef void(__cdecl* ROMOPEN_AUDIO)();
 typedef void(__cdecl* AIUPDATE)(int32_t wait);
 
-typedef void(__cdecl* CLOSEDLL_INPUT)();
 typedef void(__cdecl* CONTROLLERCOMMAND)(int32_t controller, unsigned char* command);
 typedef void(__cdecl* GETKEYS)(int32_t controller, core_buttons* keys);
 typedef void(__cdecl* SETKEYS)(int32_t controller, core_buttons keys);
 typedef void(__cdecl* OLD_INITIATECONTROLLERS)(void* hwnd, core_controller controls[4]);
 typedef void(__cdecl* INITIATECONTROLLERS)(core_input_info control_info);
 typedef void(__cdecl* READCONTROLLER)(int32_t controller, unsigned char* command);
-typedef void(__cdecl* ROMCLOSED_INPUT)();
-typedef void(__cdecl* ROMOPEN_INPUT)();
 typedef void(__cdecl* KEYDOWN)(uint32_t wParam, int32_t lParam);
 typedef void(__cdecl* KEYUP)(uint32_t wParam, int32_t lParam);
 
-typedef void(__cdecl* CLOSEDLL_RSP)();
 typedef uint32_t(__cdecl* DORSPCYCLES)(uint32_t);
 typedef void(__cdecl* INITIATERSP)(core_rsp_info rsp_info, uint32_t* cycles);
-typedef void(__cdecl* ROMCLOSED_RSP)();
 
 #if defined(CORE_PLUGIN_WITH_CALLBACKS)
 

@@ -59,12 +59,12 @@ typedef struct {
  * \brief The plugin function collection.
  */
 typedef struct {
-    CLOSEDLL_GFX close_dll_gfx;
+    CLOSEDLL close_dll_gfx;
     INITIATEGFX initiate_gfx;
     PROCESSDLIST process_dlist;
     PROCESSRDPLIST process_rdp_list;
-    ROMCLOSED_GFX rom_closed_gfx;
-    ROMOPEN_GFX rom_open_gfx;
+    ROMCLOSED rom_closed_gfx;
+    ROMOPEN rom_open_gfx;
     SHOWCFB show_cfb;
     UPDATESCREEN update_screen;
     VISTATUSCHANGED vi_status_changed;
@@ -83,29 +83,29 @@ typedef struct {
     AIDACRATECHANGED ai_dacrate_changed;
     AILENCHANGED ai_len_changed;
     AIREADLENGTH ai_read_length;
-    CLOSEDLL_AUDIO close_dll_audio;
+    CLOSEDLL close_dll_audio;
     INITIATEAUDIO initiate_audio;
     PROCESSALIST process_a_list;
-    ROMCLOSED_AUDIO rom_closed_audio;
-    ROMOPEN_AUDIO rom_open_audio;
+    ROMCLOSED rom_closed_audio;
+    ROMOPEN rom_open_audio;
     AIUPDATE ai_update;
 
-    CLOSEDLL_INPUT close_dll_input;
+    CLOSEDLL close_dll_input;
     CONTROLLERCOMMAND controller_command;
     GETKEYS get_keys;
     SETKEYS set_keys;
     OLD_INITIATECONTROLLERS old_initiate_controllers;
     INITIATECONTROLLERS initiate_controllers;
     READCONTROLLER read_controller;
-    ROMCLOSED_INPUT rom_closed_input;
-    ROMOPEN_INPUT rom_open_input;
+    ROMCLOSED rom_closed_input;
+    ROMOPEN rom_open_input;
     KEYDOWN key_down;
     KEYUP key_up;
 
-    CLOSEDLL_RSP close_dll_rsp;
+    CLOSEDLL close_dll_rsp;
     DORSPCYCLES do_rsp_cycles;
     INITIATERSP initiate_rsp;
-    ROMCLOSED_RSP rom_closed_rsp;
+    ROMCLOSED rom_closed_rsp;
 } core_plugin_funcs;
 
 /**

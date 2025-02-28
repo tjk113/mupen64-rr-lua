@@ -126,19 +126,19 @@ namespace LuaCore::Movie
                 {
                     if (key == "right")
                     {
-                        buttons.r_dpad = 1;
+                        buttons.dr = 1;
                     }
                     else if (key == "left")
                     {
-                        buttons.l_dpad = 1;
+                        buttons.dl = 1;
                     }
                     else if (key == "down")
                     {
-                        buttons.d_dpad = 1;
+                        buttons.dd = 1;
                     }
                     else if (key == "up")
                     {
-                        buttons.u_dpad = 1;
+                        buttons.du = 1;
                     }
                     else if (key == "start")
                     {

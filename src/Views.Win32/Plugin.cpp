@@ -118,12 +118,12 @@ static void __cdecl dummy_moveScreen(int32_t, int32_t)
 void load_gfx(void* handle)
 {
     FUNC(g_core.plugin_funcs.change_window, CHANGEWINDOW, dummy_void, "ChangeWindow");
-    FUNC(g_core.plugin_funcs.close_dll_gfx, CLOSEDLL_GFX, dummy_void, "CloseDLL");
+    FUNC(g_core.plugin_funcs.close_dll_gfx, CLOSEDLL, dummy_void, "CloseDLL");
     FUNC(g_core.plugin_funcs.initiate_gfx, INITIATEGFX, dummy_initiateGFX, "InitiateGFX");
     FUNC(g_core.plugin_funcs.process_dlist, PROCESSDLIST, dummy_void, "ProcessDList");
     FUNC(g_core.plugin_funcs.process_rdp_list, PROCESSRDPLIST, dummy_void, "ProcessRDPList");
-    FUNC(g_core.plugin_funcs.rom_closed_gfx, ROMCLOSED_GFX, dummy_void, "RomClosed");
-    FUNC(g_core.plugin_funcs.rom_open_gfx, ROMOPEN_GFX, dummy_void, "RomOpen");
+    FUNC(g_core.plugin_funcs.rom_closed_gfx, ROMCLOSED, dummy_void, "RomClosed");
+    FUNC(g_core.plugin_funcs.rom_open_gfx, ROMOPEN, dummy_void, "RomOpen");
     FUNC(g_core.plugin_funcs.show_cfb, SHOWCFB, dummy_void, "ShowCFB");
     FUNC(g_core.plugin_funcs.update_screen, UPDATESCREEN, dummy_void, "UpdateScreen");
     FUNC(g_core.plugin_funcs.vi_status_changed, VISTATUSCHANGED, dummy_void, "ViStatusChanged");
@@ -176,7 +176,7 @@ void load_gfx(void* handle)
 
 void load_input(uint16_t version, void* handle)
 {
-    FUNC(g_core.plugin_funcs.close_dll_input, CLOSEDLL_INPUT, dummy_void, "CloseDLL");
+    FUNC(g_core.plugin_funcs.close_dll_input, CLOSEDLL, dummy_void, "CloseDLL");
     FUNC(g_core.plugin_funcs.controller_command, CONTROLLERCOMMAND, dummy_controllerCommand, "ControllerCommand");
     FUNC(g_core.plugin_funcs.get_keys, GETKEYS, dummy_getKeys, "GetKeys");
     FUNC(g_core.plugin_funcs.set_keys, SETKEYS, dummy_setKeys, "SetKeys");
@@ -189,8 +189,8 @@ void load_input(uint16_t version, void* handle)
         FUNC(g_core.plugin_funcs.old_initiate_controllers, OLD_INITIATECONTROLLERS, nullptr, "InitiateControllers");
     }
     FUNC(g_core.plugin_funcs.read_controller, READCONTROLLER, dummy_readController, "ReadController");
-    FUNC(g_core.plugin_funcs.rom_closed_input, ROMCLOSED_INPUT, dummy_void, "RomClosed");
-    FUNC(g_core.plugin_funcs.rom_open_input, ROMOPEN_INPUT, dummy_void, "RomOpen");
+    FUNC(g_core.plugin_funcs.rom_closed_input, ROMCLOSED, dummy_void, "RomClosed");
+    FUNC(g_core.plugin_funcs.rom_open_input, ROMOPEN, dummy_void, "RomOpen");
     FUNC(g_core.plugin_funcs.key_down, KEYDOWN, dummy_keyDown, "WM_KeyDown");
     FUNC(g_core.plugin_funcs.key_up, KEYUP, dummy_keyUp, "WM_KeyUp");
 
@@ -218,13 +218,13 @@ void load_input(uint16_t version, void* handle)
 
 void load_audio(void* handle)
 {
-    FUNC(g_core.plugin_funcs.close_dll_audio, CLOSEDLL_AUDIO, dummy_void, "CloseDLL");
+    FUNC(g_core.plugin_funcs.close_dll_audio, CLOSEDLL, dummy_void, "CloseDLL");
     FUNC(g_core.plugin_funcs.ai_dacrate_changed, AIDACRATECHANGED, dummy_aiDacrateChanged, "AiDacrateChanged");
     FUNC(g_core.plugin_funcs.ai_len_changed, AILENCHANGED, dummy_void, "AiLenChanged");
     FUNC(g_core.plugin_funcs.ai_read_length, AIREADLENGTH, dummy_aiReadLength, "AiReadLength");
     FUNC(g_core.plugin_funcs.initiate_audio, INITIATEAUDIO, dummy_initiateAudio, "InitiateAudio");
-    FUNC(g_core.plugin_funcs.rom_closed_audio, ROMCLOSED_AUDIO, dummy_void, "RomClosed");
-    FUNC(g_core.plugin_funcs.rom_open_audio, ROMOPEN_AUDIO, dummy_void, "RomOpen");
+    FUNC(g_core.plugin_funcs.rom_closed_audio, ROMCLOSED, dummy_void, "RomClosed");
+    FUNC(g_core.plugin_funcs.rom_open_audio, ROMOPEN, dummy_void, "RomOpen");
     FUNC(g_core.plugin_funcs.process_a_list, PROCESSALIST, dummy_void, "ProcessAList");
     FUNC(g_core.plugin_funcs.ai_update, AIUPDATE, dummy_aiUpdate, "AiUpdate");
 
@@ -249,10 +249,10 @@ void load_audio(void* handle)
 
 void load_rsp(void* handle)
 {
-    FUNC(g_core.plugin_funcs.close_dll_rsp, CLOSEDLL_RSP, dummy_void, "CloseDLL");
+    FUNC(g_core.plugin_funcs.close_dll_rsp, CLOSEDLL, dummy_void, "CloseDLL");
     FUNC(g_core.plugin_funcs.do_rsp_cycles, DORSPCYCLES, dummy_doRspCycles, "DoRspCycles");
     FUNC(g_core.plugin_funcs.initiate_rsp, INITIATERSP, dummy_initiateRSP, "InitiateRSP");
-    FUNC(g_core.plugin_funcs.rom_closed_rsp, ROMCLOSED_RSP, dummy_void, "RomClosed");
+    FUNC(g_core.plugin_funcs.rom_closed_rsp, ROMCLOSED, dummy_void, "RomClosed");
 
     rsp_info.byteswapped = 1;
     rsp_info.rdram = (uint8_t*)g_core.rdram;
@@ -356,7 +356,7 @@ void Plugin::config()
 
             if (!core_vr_get_launched())
             {
-                auto closeDLL_gfx = (CLOSEDLL_GFX)PlatformService::get_function_in_module((void*)m_module, "CloseDLL");
+                auto closeDLL_gfx = (CLOSEDLL)PlatformService::get_function_in_module((void*)m_module, "CloseDLL");
                 if (closeDLL_gfx)
                     closeDLL_gfx();
             }
@@ -379,7 +379,7 @@ void Plugin::config()
 
             if (!core_vr_get_launched())
             {
-                auto closeDLL_audio = (CLOSEDLL_AUDIO)PlatformService::get_function_in_module((void*)m_module, "CloseDLL");
+                auto closeDLL_audio = (CLOSEDLL)PlatformService::get_function_in_module((void*)m_module, "CloseDLL");
                 if (closeDLL_audio)
                     closeDLL_audio();
             }
@@ -409,7 +409,7 @@ void Plugin::config()
 
             if (!core_vr_get_launched())
             {
-                auto closeDLL_input = (CLOSEDLL_INPUT)PlatformService::get_function_in_module((void*)m_module, "CloseDLL");
+                auto closeDLL_input = (CLOSEDLL)PlatformService::get_function_in_module((void*)m_module, "CloseDLL");
                 if (closeDLL_input)
                     closeDLL_input();
             }
@@ -431,7 +431,7 @@ void Plugin::config()
 
             if (!core_vr_get_launched())
             {
-                auto closeDLL_RSP = (CLOSEDLL_RSP)PlatformService::get_function_in_module((void*)m_module, "CloseDLL");
+                auto closeDLL_RSP = (CLOSEDLL)PlatformService::get_function_in_module((void*)m_module, "CloseDLL");
                 if (closeDLL_RSP)
                     closeDLL_RSP();
             }
