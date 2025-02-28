@@ -7,6 +7,8 @@
 // ReSharper disable CppInconsistentNaming
 #pragma once
 
+#include "core_plugin.h"
+
 /**
  * An enum containing results that can be returned by the core.
  */
@@ -420,198 +422,13 @@ typedef struct {
     uint32_t si_status;
 } core_si_reg;
 
-typedef enum {
-    plugin_video = 2,
-    plugin_audio = 3,
-    plugin_input = 4,
-    plugin_rsp = 1,
-} core_plugin_type;
-
-typedef enum {
-    ce_none = 1,
-    ce_mempak = 2,
-    ce_rumblepak = 3,
-    ce_transferpak = 4,
-    ce_raw = 5
-} core_controller_extension;
-
+/**
+ * \brief Represents a system type.
+ */
 typedef enum {
     sys_ntsc,
     sys_pal,
 } core_system_type;
-
-typedef struct
-{
-    uint16_t Version;
-    uint16_t Type;
-    char Name[100];
-
-    /* If DLL supports memory these memory options then set them to TRUE or FALSE
-       if it does not support it */
-    int32_t NormalMemory; /* a normal uint8_t array */
-    int32_t MemoryBswaped; /* a normal uint8_t array where the memory has been pre
-                             bswap on a dword (32 bits) boundry */
-} core_plugin_info;
-
-typedef struct
-{
-    void* hInst;
-    // Whether the memory has been pre-byteswapped on a uint32_t boundary
-    int32_t MemoryBswaped;
-    uint8_t* RDRAM;
-    uint8_t* DMEM;
-    uint8_t* IMEM;
-
-    uint32_t* MI_INTR_REG;
-
-    uint32_t* SP_MEM_ADDR_REG;
-    uint32_t* SP_DRAM_ADDR_REG;
-    uint32_t* SP_RD_LEN_REG;
-    uint32_t* SP_WR_LEN_REG;
-    uint32_t* SP_STATUS_REG;
-    uint32_t* SP_DMA_FULL_REG;
-    uint32_t* SP_DMA_BUSY_REG;
-    uint32_t* SP_PC_REG;
-    uint32_t* SP_SEMAPHORE_REG;
-
-    uint32_t* DPC_START_REG;
-    uint32_t* DPC_END_REG;
-    uint32_t* DPC_CURRENT_REG;
-    uint32_t* DPC_STATUS_REG;
-    uint32_t* DPC_CLOCK_REG;
-    uint32_t* DPC_BUFBUSY_REG;
-    uint32_t* DPC_PIPEBUSY_REG;
-    uint32_t* DPC_TMEM_REG;
-
-    void(__cdecl* CheckInterrupts)(void);
-    void(__cdecl* ProcessDlistList)(void);
-    void(__cdecl* ProcessAlistList)(void);
-    void(__cdecl* ProcessRdpList)(void);
-    void(__cdecl* ShowCFB)(void);
-} core_rsp_info;
-
-typedef struct
-{
-    void* hWnd; /* Render window */
-    void* hStatusBar;
-    /* if render window does not have a status bar then this is NULL */
-
-    int32_t MemoryBswaped; // If this is set to TRUE, then the memory has been pre
-    //   bswap on a dword (32 bits) boundry
-    //	eg. the first 8 bytes are stored like this:
-    //        4 3 2 1   8 7 6 5
-
-    uint8_t* HEADER; // This is the rom header (first 40h bytes of the rom
-    // This will be in the same memory format as the rest of the memory.
-    uint8_t* RDRAM;
-    uint8_t* DMEM;
-    uint8_t* IMEM;
-
-    uint32_t* MI_INTR_REG;
-
-    uint32_t* DPC_START_REG;
-    uint32_t* DPC_END_REG;
-    uint32_t* DPC_CURRENT_REG;
-    uint32_t* DPC_STATUS_REG;
-    uint32_t* DPC_CLOCK_REG;
-    uint32_t* DPC_BUFBUSY_REG;
-    uint32_t* DPC_PIPEBUSY_REG;
-    uint32_t* DPC_TMEM_REG;
-
-    uint32_t* VI_STATUS_REG;
-    uint32_t* VI_ORIGIN_REG;
-    uint32_t* VI_WIDTH_REG;
-    uint32_t* VI_INTR_REG;
-    uint32_t* VI_V_CURRENT_LINE_REG;
-    uint32_t* VI_TIMING_REG;
-    uint32_t* VI_V_SYNC_REG;
-    uint32_t* VI_H_SYNC_REG;
-    uint32_t* VI_LEAP_REG;
-    uint32_t* VI_H_START_REG;
-    uint32_t* VI_V_START_REG;
-    uint32_t* VI_V_BURST_REG;
-    uint32_t* VI_X_SCALE_REG;
-    uint32_t* VI_Y_SCALE_REG;
-
-    void(__cdecl* CheckInterrupts)(void);
-} core_gfx_info;
-
-typedef struct
-{
-    void* hwnd;
-    void* hinst;
-
-    int32_t MemoryBswaped; // If this is set to TRUE, then the memory has been pre
-    //   bswap on a dword (32 bits) boundry
-    //	eg. the first 8 bytes are stored like this:
-    //        4 3 2 1   8 7 6 5
-    uint8_t* HEADER; // This is the rom header (first 40h bytes of the rom
-    // This will be in the same memory format as the rest of the memory.
-    uint8_t* RDRAM;
-    uint8_t* DMEM;
-    uint8_t* IMEM;
-
-    uint32_t* MI_INTR_REG;
-
-    uint32_t* AI_DRAM_ADDR_REG;
-    uint32_t* AI_LEN_REG;
-    uint32_t* AI_CONTROL_REG;
-    uint32_t* AI_STATUS_REG;
-    uint32_t* AI_DACRATE_REG;
-    uint32_t* AI_BITRATE_REG;
-
-    void(__cdecl* CheckInterrupts)(void);
-} core_audio_info;
-
-typedef struct
-{
-    int32_t Present;
-    int32_t RawData;
-    int32_t Plugin;
-} core_controller;
-
-typedef union {
-    uint32_t Value;
-
-    struct
-    {
-        unsigned R_DPAD : 1;
-        unsigned L_DPAD : 1;
-        unsigned D_DPAD : 1;
-        unsigned U_DPAD : 1;
-        unsigned START_BUTTON : 1;
-        unsigned Z_TRIG : 1;
-        unsigned B_BUTTON : 1;
-        unsigned A_BUTTON : 1;
-
-        unsigned R_CBUTTON : 1;
-        unsigned L_CBUTTON : 1;
-        unsigned D_CBUTTON : 1;
-        unsigned U_CBUTTON : 1;
-        unsigned R_TRIG : 1;
-        unsigned L_TRIG : 1;
-        unsigned Reserved1 : 1;
-        unsigned Reserved2 : 1;
-
-        signed Y_AXIS : 8;
-
-        signed X_AXIS : 8;
-    };
-} core_buttons;
-
-typedef struct
-{
-    void* hMainWindow;
-    void* hinst;
-
-    int32_t MemoryBswaped; // If this is set to TRUE, then the memory has been pre
-    //   bswap on a dword (32 bits) boundry, only effects header.
-    //	eg. the first 8 bytes are stored like this:
-    //        4 3 2 1   8 7 6 5
-    uint8_t* HEADER; // This is the rom header (first 40h bytes of the rom)
-    core_controller* Controls; // A pointer to an array of 4 controllers .. eg:
-    // CONTROL Controls[4];
-} core_input_info;
 
 typedef struct {
     uint8_t init_PI_BSB_DOM1_LAT_REG;
@@ -631,69 +448,6 @@ typedef struct {
     uint16_t Country_code;
     uint32_t Boot_Code[1008];
 } core_rom_header;
-
-
-typedef void(__cdecl* GETDLLINFO)(core_plugin_info*);
-typedef void(__cdecl* DLLCONFIG)(void*);
-typedef void(__cdecl* DLLTEST)(void*);
-typedef void(__cdecl* DLLABOUT)(void*);
-
-typedef void(__cdecl* CHANGEWINDOW)();
-typedef void(__cdecl* CLOSEDLL_GFX)();
-typedef int32_t(__cdecl* INITIATEGFX)(core_gfx_info);
-typedef void(__cdecl* PROCESSDLIST)();
-typedef void(__cdecl* PROCESSRDPLIST)();
-typedef void(__cdecl* ROMCLOSED_GFX)();
-typedef void(__cdecl* ROMOPEN_GFX)();
-typedef void(__cdecl* SHOWCFB)();
-typedef void(__cdecl* UPDATESCREEN)();
-typedef void(__cdecl* VISTATUSCHANGED)();
-typedef void(__cdecl* VIWIDTHCHANGED)();
-typedef void(__cdecl* READSCREEN)(void**, int32_t*, int32_t*);
-typedef void(__cdecl* DLLCRTFREE)(void*);
-typedef void(__cdecl* MOVESCREEN)(int32_t, int32_t);
-typedef void(__cdecl* CAPTURESCREEN)(char*);
-typedef void(__cdecl* GETVIDEOSIZE)(int32_t*, int32_t*);
-typedef void(__cdecl* READVIDEO)(void**);
-typedef void(__cdecl* FBREAD)(uint32_t);
-typedef void(__cdecl* FBWRITE)(uint32_t addr, uint32_t size);
-typedef void(__cdecl* FBGETFRAMEBUFFERINFO)(void*);
-
-typedef void(__cdecl* AIDACRATECHANGED)(int32_t system_type);
-typedef void(__cdecl* AILENCHANGED)();
-typedef uint32_t(__cdecl* AIREADLENGTH)();
-typedef void(__cdecl* CLOSEDLL_AUDIO)();
-typedef int32_t(__cdecl* INITIATEAUDIO)(core_audio_info);
-typedef void(__cdecl* PROCESSALIST)();
-typedef void(__cdecl* ROMCLOSED_AUDIO)();
-typedef void(__cdecl* ROMOPEN_AUDIO)();
-typedef void(__cdecl* AIUPDATE)(int32_t wait);
-
-typedef void(__cdecl* CLOSEDLL_INPUT)();
-typedef void(__cdecl* CONTROLLERCOMMAND)(int32_t controller, unsigned char* command);
-typedef void(__cdecl* GETKEYS)(int32_t controller, core_buttons* keys);
-typedef void(__cdecl* SETKEYS)(int32_t controller, core_buttons keys);
-typedef void(__cdecl* OLD_INITIATECONTROLLERS)(void* hwnd, core_controller controls[4]);
-typedef void(__cdecl* INITIATECONTROLLERS)(core_input_info control_info);
-typedef void(__cdecl* READCONTROLLER)(int32_t controller, unsigned char* command);
-typedef void(__cdecl* ROMCLOSED_INPUT)();
-typedef void(__cdecl* ROMOPEN_INPUT)();
-typedef void(__cdecl* KEYDOWN)(uint32_t wParam, int32_t lParam);
-typedef void(__cdecl* KEYUP)(uint32_t wParam, int32_t lParam);
-
-typedef void(__cdecl* CLOSEDLL_RSP)();
-typedef uint32_t(__cdecl* DORSPCYCLES)(uint32_t);
-typedef void(__cdecl* INITIATERSP)(core_rsp_info rsp_info, uint32_t* cycles);
-typedef void(__cdecl* ROMCLOSED_RSP)();
-
-// frame buffer plugin spec extension
-typedef struct
-{
-    uint32_t addr;
-    uint32_t size;
-    uint32_t width;
-    uint32_t height;
-} core_fb_info;
 
 #pragma endregion
 

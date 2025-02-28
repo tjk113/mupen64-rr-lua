@@ -173,6 +173,7 @@
     <ClInclude Include="lib\IOHelpers.h" />
     <ClInclude Include="src\Core\Core.h" />
     <ClInclude Include="src\Core\cheats.h" />
+    <ClInclude Include="src\Core\include\core_plugin.h" />
     <ClInclude Include="src\Core\include\core_types.h" />
     <ClInclude Include="src\Core\include\core_api.h" />
     <ClInclude Include="src\Core\stdafx.h" />
