@@ -141,7 +141,7 @@ void internal_ReadController(int32_t Control, uint8_t* Command)
             lag_count = 0;
             core_buttons input = {0};
             vcr_on_controller_poll(Control, &input);
-            *((uint32_t*)(Command + 3)) = input.Value;
+            *((uint32_t*)(Command + 3)) = input.value;
         }
         break;
     case 2: // read controller pack

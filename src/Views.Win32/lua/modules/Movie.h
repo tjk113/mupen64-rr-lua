@@ -126,59 +126,59 @@ namespace LuaCore::Movie
                 {
                     if (key == "right")
                     {
-                        buttons.R_DPAD = 1;
+                        buttons.r_dpad = 1;
                     }
                     else if (key == "left")
                     {
-                        buttons.L_DPAD = 1;
+                        buttons.l_dpad = 1;
                     }
                     else if (key == "down")
                     {
-                        buttons.D_DPAD = 1;
+                        buttons.d_dpad = 1;
                     }
                     else if (key == "up")
                     {
-                        buttons.U_DPAD = 1;
+                        buttons.u_dpad = 1;
                     }
                     else if (key == "start")
                     {
-                        buttons.START_BUTTON = 1;
+                        buttons.start = 1;
                     }
                     else if (key == "Z")
                     {
-                        buttons.Z_TRIG = 1;
+                        buttons.z = 1;
                     }
                     else if (key == "B")
                     {
-                        buttons.B_BUTTON = 1;
+                        buttons.b = 1;
                     }
                     else if (key == "A")
                     {
-                        buttons.A_BUTTON = 1;
+                        buttons.a = 1;
                     }
                     else if (key == "Cright")
                     {
-                        buttons.R_CBUTTON = 1;
+                        buttons.cr = 1;
                     }
                     else if (key == "Cleft")
                     {
-                        buttons.L_CBUTTON = 1;
+                        buttons.cl = 1;
                     }
                     else if (key == "Cdown")
                     {
-                        buttons.D_CBUTTON = 1;
+                        buttons.cd = 1;
                     }
                     else if (key == "Cup")
                     {
-                        buttons.U_CBUTTON = 1;
+                        buttons.cu = 1;
                     }
                     else if (key == "R")
                     {
-                        buttons.R_TRIG = 1;
+                        buttons.r = 1;
                     }
                     else if (key == "L")
                     {
-                        buttons.L_TRIG = 1;
+                        buttons.l = 1;
                     }
                 }
                 if (lua_tointeger(L, -1))
@@ -186,11 +186,11 @@ namespace LuaCore::Movie
                     auto value = luaL_checkinteger(L, -1);
                     if (key == "X")
                     {
-                        buttons.X_AXIS = value;
+                        buttons.x = value;
                     }
                     if (key == "Y")
                     {
-                        buttons.Y_AXIS = value;
+                        buttons.y = value;
                     }
                 }
                 lua_pop(L, 1);

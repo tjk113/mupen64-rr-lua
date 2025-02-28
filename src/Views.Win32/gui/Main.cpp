@@ -406,42 +406,42 @@ const wchar_t* get_input_text()
     memset(text, 0, sizeof(text));
 
     core_buttons b = LuaService::get_last_controller_data(0);
-    wsprintf(text, L"(%d, %d) ", b.Y_AXIS, b.X_AXIS);
-    if (b.START_BUTTON)
+    wsprintf(text, L"(%d, %d) ", b.y, b.x);
+    if (b.start)
         lstrcatW(text, L"S");
-    if (b.Z_TRIG)
+    if (b.z)
         lstrcatW(text, L"Z");
-    if (b.A_BUTTON)
+    if (b.a)
         lstrcatW(text, L"A");
-    if (b.B_BUTTON)
+    if (b.b)
         lstrcatW(text, L"B");
-    if (b.L_TRIG)
+    if (b.l)
         lstrcatW(text, L"L");
-    if (b.R_TRIG)
+    if (b.r)
         lstrcatW(text, L"R");
-    if (b.U_CBUTTON || b.D_CBUTTON || b.L_CBUTTON ||
-        b.R_CBUTTON)
+    if (b.cu || b.cd || b.cl ||
+        b.cr)
     {
         lstrcatW(text, L" C");
-        if (b.U_CBUTTON)
+        if (b.cu)
             lstrcatW(text, L"^");
-        if (b.D_CBUTTON)
+        if (b.cd)
             lstrcatW(text, L"v");
-        if (b.L_CBUTTON)
+        if (b.cl)
             lstrcatW(text, L"<");
-        if (b.R_CBUTTON)
+        if (b.cr)
             lstrcatW(text, L">");
     }
-    if (b.U_DPAD || b.D_DPAD || b.L_DPAD || b.R_DPAD)
+    if (b.du || b.dd || b.dl || b.dr)
     {
         lstrcatW(text, L"D");
-        if (b.U_DPAD)
+        if (b.du)
             lstrcatW(text, L"^");
-        if (b.D_DPAD)
+        if (b.dd)
             lstrcatW(text, L"v");
-        if (b.L_DPAD)
+        if (b.dl)
             lstrcatW(text, L"<");
-        if (b.R_DPAD)
+        if (b.dr)
             lstrcatW(text, L">");
     }
     return text;
@@ -1390,7 +1390,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             case IDM_DEBUG_WARP_MODIFY:
                 {
                     auto inputs = core_vcr_get_inputs();
-                    inputs[inputs.size() - 10].A_BUTTON = 1;
+                    inputs[inputs.size() - 10].a = 1;
 
                     auto result = core_vcr_begin_warp_modify(inputs);
                     show_error_dialog_for_result(result);

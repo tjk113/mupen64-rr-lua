@@ -174,31 +174,31 @@ namespace PianoRoll
         switch (i)
         {
         case 4:
-            return btn.A_BUTTON;
+            return btn.a;
         case 5:
-            return btn.B_BUTTON;
+            return btn.b;
         case 6:
-            return btn.Z_TRIG;
+            return btn.z;
         case 7:
-            return btn.R_TRIG;
+            return btn.r;
         case 8:
-            return btn.START_BUTTON;
+            return btn.start;
         case 9:
-            return btn.U_CBUTTON;
+            return btn.cu;
         case 10:
-            return btn.L_CBUTTON;
+            return btn.cl;
         case 11:
-            return btn.R_CBUTTON;
+            return btn.cr;
         case 12:
-            return btn.D_CBUTTON;
+            return btn.cd;
         case 13:
-            return btn.U_DPAD;
+            return btn.du;
         case 14:
-            return btn.L_DPAD;
+            return btn.dl;
         case 15:
-            return btn.R_DPAD;
+            return btn.dr;
         case 16:
-            return btn.D_DPAD;
+            return btn.dd;
         default:
             assert(false);
             return -1;
@@ -216,43 +216,43 @@ namespace PianoRoll
         switch (i)
         {
         case 4:
-            btn->A_BUTTON = value;
+            btn->a = value;
             break;
         case 5:
-            btn->B_BUTTON = value;
+            btn->b = value;
             break;
         case 6:
-            btn->Z_TRIG = value;
+            btn->z = value;
             break;
         case 7:
-            btn->R_TRIG = value;
+            btn->r = value;
             break;
         case 8:
-            btn->START_BUTTON = value;
+            btn->start = value;
             break;
         case 9:
-            btn->U_CBUTTON = value;
+            btn->cu = value;
             break;
         case 10:
-            btn->L_CBUTTON = value;
+            btn->cl = value;
             break;
         case 11:
-            btn->R_CBUTTON = value;
+            btn->cr = value;
             break;
         case 12:
-            btn->D_CBUTTON = value;
+            btn->cd = value;
             break;
         case 13:
-            btn->U_DPAD = value;
+            btn->du = value;
             break;
         case 14:
-            btn->L_DPAD = value;
+            btn->dl = value;
             break;
         case 15:
-            btn->R_DPAD = value;
+            btn->dr = value;
             break;
         case 16:
-            btn->D_DPAD = value;
+            btn->dd = value;
             break;
         default:
             assert(false);
@@ -310,7 +310,7 @@ namespace PianoRoll
         g_view_logger->info("[PianoRoll] Clipboard of length {}", g_clipboard.size());
         for (auto item : g_clipboard)
         {
-            item.has_value() ? g_view_logger->info("[PianoRoll] {:#06x}", item.value().Value) : g_view_logger->info("[PianoRoll] ------");
+            item.has_value() ? g_view_logger->info("[PianoRoll] {:#06x}", item.value().value) : g_view_logger->info("[PianoRoll] ------");
         }
         g_view_logger->info("[PianoRoll] ------------- Dump End -------------");
     }
@@ -555,7 +555,7 @@ namespace PianoRoll
             {
                 if (item.has_value() && i < g_piano_roll_state.inputs.size())
                 {
-                    g_piano_roll_state.inputs[i] = merge ? core_buttons{g_piano_roll_state.inputs[i].Value | item.value().Value} : item.value();
+                    g_piano_roll_state.inputs[i] = merge ? core_buttons{g_piano_roll_state.inputs[i].value | item.value().value} : item.value();
                     ListView_Update(g_lv_hwnd, i);
                 }
 
@@ -573,7 +573,7 @@ namespace PianoRoll
 
                 if (item.has_value() && i < g_piano_roll_state.inputs.size() && included)
                 {
-                    g_piano_roll_state.inputs[i] = merge ? core_buttons{g_piano_roll_state.inputs[i].Value | item.value().Value} : item.value();
+                    g_piano_roll_state.inputs[i] = merge ? core_buttons{g_piano_roll_state.inputs[i].value | item.value().value} : item.value();
                     ListView_Update(g_lv_hwnd, i);
                 }
 
@@ -903,8 +903,8 @@ namespace PianoRoll
 
                 const int mid_x = rect.right / 2;
                 const int mid_y = rect.bottom / 2;
-                const int stick_x = (input.Y_AXIS + 128) * rect.right / 256;
-                const int stick_y = (-input.X_AXIS + 128) * rect.bottom / 256;
+                const int stick_x = (input.y + 128) * rect.right / 256;
+                const int stick_y = (-input.x + 128) * rect.bottom / 256;
 
                 FillRect(cdc, &rect, GetSysColorBrush(COLOR_BTNFACE));
 
@@ -992,8 +992,8 @@ namespace PianoRoll
         SetWindowRedraw(g_lv_hwnd, false);
         for (auto selected_index : g_piano_roll_state.selected_indicies)
         {
-            g_piano_roll_state.inputs[selected_index].X_AXIS = y;
-            g_piano_roll_state.inputs[selected_index].Y_AXIS = x;
+            g_piano_roll_state.inputs[selected_index].x = y;
+            g_piano_roll_state.inputs[selected_index].y = x;
             ListView_Update(g_lv_hwnd, selected_index);
         }
         SetWindowRedraw(g_lv_hwnd, true);
@@ -1483,10 +1483,10 @@ namespace PianoRoll
                             StrNCpy(plvdi->item.pszText, std::to_wstring(plvdi->item.iItem).c_str(), plvdi->item.cchTextMax);
                             break;
                         case 2:
-							StrNCpy(plvdi->item.pszText, std::to_wstring(input.Y_AXIS).c_str(), plvdi->item.cchTextMax);
+							StrNCpy(plvdi->item.pszText, std::to_wstring(input.y).c_str(), plvdi->item.cchTextMax);
                             break;
                         case 3:
-							StrNCpy(plvdi->item.pszText, std::to_wstring(input.X_AXIS).c_str(), plvdi->item.cchTextMax);
+							StrNCpy(plvdi->item.pszText, std::to_wstring(input.x).c_str(), plvdi->item.cchTextMax);
                             break;
                         default:
                             {

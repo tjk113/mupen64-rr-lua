@@ -637,8 +637,8 @@ void vcr_handle_recording(int32_t index, core_buttons* input)
     if (vcr_reset_requested)
     {
         *input = {
-            .Reserved1 = 1,
-            .Reserved2 = 1,
+            .reserved_1 = 1,
+            .reserved_2 = 1,
         };
     }
     else
@@ -728,7 +728,7 @@ void vcr_handle_playback(int32_t index, core_buttons* input)
     g_core->plugin_funcs.set_keys(index, *input);
 
     //no readable code because 120 star tas can't get this right >:(
-    if (input->Value == 0xC000)
+    if (input->value == 0xC000)
     {
         g_reset_pending = true;
         g_core->log_info(L"[VCR] Resetting during playback...");
@@ -1733,7 +1733,7 @@ size_t vcr_find_first_input_difference(const std::vector<core_buttons>& first, c
         const auto min_size = std::min(first.size(), second.size());
         for (int32_t i = 0; i < min_size; ++i)
         {
-            if (first[i].Value != second[i].Value)
+            if (first[i].value != second[i].value)
             {
                 return i;
             }
@@ -1744,7 +1744,7 @@ size_t vcr_find_first_input_difference(const std::vector<core_buttons>& first, c
     {
         for (int32_t i = 0; i < first.size(); ++i)
         {
-            if (first[i].Value != second[i].Value)
+            if (first[i].value != second[i].value)
             {
                 return i;
             }

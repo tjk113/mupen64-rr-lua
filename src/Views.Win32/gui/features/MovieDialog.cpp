@@ -24,7 +24,7 @@ namespace MovieDialog
         bool pressed = false;
         for (const auto btn : buttons)
         {
-            const bool value = !!(btn.Value >> mask & 1);
+            const bool value = !!(btn.value >> mask & 1);
 
             if (value && !pressed)
             {
@@ -44,7 +44,7 @@ namespace MovieDialog
         size_t accumulator = 0;
         for (const auto btn : buttons)
         {
-            if (btn.Value == 0)
+            if (btn.value == 0)
             {
                 accumulator++;
             }
@@ -57,7 +57,7 @@ namespace MovieDialog
         size_t accumulator = 0;
         for (const auto btn : buttons)
         {
-            if (btn.X_AXIS != 0 || btn.Y_AXIS != 0)
+            if (btn.x != 0 || btn.y != 0)
             {
                 accumulator++;
             }
@@ -71,7 +71,7 @@ namespace MovieDialog
         core_buttons last_input = {0};
         for (const auto btn : buttons)
         {
-            if (btn.Value != last_input.Value)
+            if (btn.value != last_input.value)
             {
                 accumulator++;
             }
