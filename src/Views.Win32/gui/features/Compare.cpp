@@ -37,11 +37,11 @@ void Compare::compare(size_t current_sample)
 
             if (files_are_equal(expected_path, actual_path))
             {
-                g_core.logger->info("MATCH at frame {}", current_sample - compare_interval);
+                g_view_logger->info("MATCH at frame {}", current_sample - compare_interval);
             }
             else
             {
-                g_core.logger->error("DIFFERENCE at frame {}", current_sample - compare_interval);
+                g_view_logger->error("DIFFERENCE at frame {}", current_sample - compare_interval);
             }
         }
 

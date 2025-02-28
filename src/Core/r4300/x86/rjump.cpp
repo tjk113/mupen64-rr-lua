@@ -29,7 +29,7 @@ void dyna_start(void (*code)())
     // ƒŒƒWƒXƒ^ ebx, esi, edi, ebp ‚Ì•Û‘¶‚Æ•œŒ³‚ª•K—v‚¾‚ªAsetjmp() ‚ª‚â‚Á‚Ä‚­‚ê‚é
     core_executing = true;
     g_core->callbacks.core_executing_changed(core_executing);
-    g_core->logger->info(L"core_executing: {}", (bool)core_executing);
+    g_core->log_info(std::format(L"core_executing: {}", (bool)core_executing));
     if (setjmp(g_jmp_state) == 0)
     {
         code();

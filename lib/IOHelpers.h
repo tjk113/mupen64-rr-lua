@@ -7,39 +7,6 @@
 #pragma once
 
 /**
- * \brief Records the execution time of a scope
- */
-class ScopeTimer {
-public:
-    ScopeTimer(const std::string& name, spdlog::logger* logger)
-    {
-        m_name = name;
-        m_logger = logger;
-        m_start_time = std::chrono::high_resolution_clock::now();
-    }
-
-    ~ScopeTimer()
-    {
-        print_duration();
-    }
-
-    void print_duration() const
-    {
-        m_logger->info("[ScopeTimer] {}: {}ms", m_name.c_str(), momentary_ms());
-    }
-
-    [[nodiscard]] int momentary_ms() const
-    {
-        return static_cast<int>((std::chrono::high_resolution_clock::now() - m_start_time).count() / 1'000'000);
-    }
-
-private:
-    std::string m_name;
-    spdlog::logger* m_logger;
-    std::chrono::time_point<std::chrono::steady_clock> m_start_time;
-};
-
-/**
  * \brief Writes data to a vector at its tail end based on its size, expanding it as needed
  * \param vec The target vector
  * \param data The source data

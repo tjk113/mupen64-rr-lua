@@ -9,6 +9,7 @@
 #include <libdeflate.h>
 
 #ifdef _WIN32
+#include <Windows.h>
 #include <stringapiset.h>
 #endif
 

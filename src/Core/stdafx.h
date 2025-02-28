@@ -40,5 +40,4 @@
 #include <stack>
 #include <deque>
 #include <numeric>
-#include <spdlog/logger.h>
 #include <IOHelpers.h>

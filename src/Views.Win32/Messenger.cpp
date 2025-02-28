@@ -42,7 +42,7 @@ namespace Messenger
     {
         while (g_broadcasting != 0)
         {
-            g_core.logger->info("[Messenger] Waiting for broadcast end...");
+            g_view_logger->info("[Messenger] Waiting for broadcast end...");
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
     }
@@ -51,7 +51,7 @@ namespace Messenger
     {
         while (g_subscribing != 0)
         {
-            g_core.logger->info("[Messenger] Waiting for subscribe end...");
+            g_view_logger->info("[Messenger] Waiting for subscribe end...");
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
     }

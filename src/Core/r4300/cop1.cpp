@@ -75,7 +75,7 @@ void CTC1()
         break;
     }
     set_rounding();
-    //if ((FCR31 >> 7) & 0x1F) g_core->logger->info("FPU Exception enabled : {:#06x}",
+    //if ((FCR31 >> 7) & 0x1F) g_core->log_info(L"FPU Exception enabled : {:#06x}",
     //				   (int32_t)((FCR31 >> 7) & 0x1F));
     PC++;
 }

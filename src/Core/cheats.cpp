@@ -29,7 +29,7 @@ bool core_cht_compile(const std::wstring& code, core_cheat& cheat)
     {
         if (line[0] == '$' || line[0] == '-' || line.size() < 13)
         {
-            g_core->logger->info("[GS] Line skipped");
+            g_core->log_info(L"[GS] Line skipped");
             continue;
         }
 
@@ -48,7 +48,7 @@ bool core_cht_compile(const std::wstring& code, core_cheat& cheat)
 
         if (serial)
         {
-            g_core->logger->info("[GS] Compiling {} serial byte writes...", serial_count);
+            g_core->log_info(std::format(L"[GS] Compiling {} serial byte writes...", serial_count));
 
             for (size_t i = 0; i < serial_count; ++i)
             {
@@ -139,7 +139,7 @@ bool core_cht_compile(const std::wstring& code, core_cheat& cheat)
         }
         else
         {
-            g_core->logger->error(L"[GS] Illegal instruction {}\n", opcode.c_str());
+            g_core->log_error(std::format(L"[GS] Illegal instruction {}\n", opcode.c_str()));
             return false;
         }
     }
@@ -156,7 +156,7 @@ bool cht_read_from_file(const std::filesystem::path& path, std::vector<core_chea
 
     if (_wfopen_s(&f, path.wstring().c_str(), L"r"))
     {
-        g_core->logger->error(L"cht_read_from_file failed to open file {}", path.wstring());
+        g_core->log_error(std::format(L"cht_read_from_file failed to open file {}", path.wstring()));
         return false;
     }
 
@@ -230,7 +230,7 @@ void core_cht_set_list(const std::vector<core_cheat>& list)
 
     if (!cheat_stack.empty())
     {
-        g_core->logger->warn("core_cht_set_list ignored due to cheat stack not being empty");
+        g_core->log_warn(std::format(L"core_cht_set_list ignored due to cheat stack not being empty"));
         return;
     }
 
@@ -241,7 +241,7 @@ void cht_layer_push(const std::vector<core_cheat>& cheats)
 {
     std::scoped_lock lock(cheats_mutex);
 
-    g_core->logger->info("cht_layer_push pushing {} cheats", cheats.size());
+    g_core->log_info(std::format(L"cht_layer_push pushing {} cheats", cheats.size()));
     
     cheat_stack.push(cheats);
 }

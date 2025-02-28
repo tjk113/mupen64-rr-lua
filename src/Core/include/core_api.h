@@ -120,11 +120,6 @@ typedef struct {
     core_cfg* cfg;
 
     /**
-     * \brief The core's logger.
-     */
-    spdlog::logger* logger;
-
-    /**
      * \brief The core callbacks.
      */
     core_callbacks callbacks;
@@ -133,6 +128,26 @@ typedef struct {
      * \brief The plugin functions.
      */
     core_plugin_funcs plugin_funcs;
+
+    /**
+     * \brief Logs the specified message at the trace level.
+     */
+    void (*log_trace)(const std::wstring&);
+
+    /**
+     * \brief Logs the specified message at the info level.
+     */
+    void (*log_info)(const std::wstring&);
+
+    /**
+     * \brief Logs the specified message at the warning level.
+     */
+    void (*log_warn)(const std::wstring&);
+
+    /**
+     * \brief Logs the specified message at the error level.
+     */
+    void (*log_error)(const std::wstring&);
 
     /**
      * \brief Loads the plugins specified by the config paths.
@@ -723,7 +738,7 @@ EXPORT bool CALL core_cht_compile(const std::wstring& code, core_cheat& cheat);
  * \brief Gets the cheat override stack.
  */
 EXPORT void CALL core_cht_get_override_stack(std::stack<std::vector<core_cheat>>&);
-    
+
 /**
  * \brief Gets the cheat list.
  * \remarks The returned cheat list may not be the one set via core_cht_set_list, as the core can apply cheat overrides.

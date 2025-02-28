@@ -16,7 +16,7 @@ core_result core_init(core_params* params)
 {
     g_core = params;
 
-#define DEFAULT_FUNC(name, func) if (!g_core->callbacks.name) { g_core->callbacks.name = func; g_core->logger->warn("Substituting callback {} with default", #name); }
+#define DEFAULT_FUNC(name, func) if (!g_core->callbacks.name) { g_core->callbacks.name = func; g_core->log_warn(std::format(L"Substituting callback {} with default", L#name)); }
     DEFAULT_FUNC(vi, []{});
     DEFAULT_FUNC(input, [](core_buttons*, int){});
     DEFAULT_FUNC(frame, []{});

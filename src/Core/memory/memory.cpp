@@ -1019,7 +1019,7 @@ int32_t init_memory()
     fast_memory = 1;
     firstFrameBufferSetting = 1;
 
-    g_core->logger->info("memory initialized");
+    g_core->log_info(L"memory initialized");
     return 0;
 }
 
@@ -1298,7 +1298,7 @@ void update_SP()
         }
         else
         {
-            //g_core->logger->info("other task");
+            //g_core->log_info(L"other task");
             rsp_register.rsp_pc &= 0xFFF;
             if (!g_vr_fast_forward || !g_core->cfg->fastforward_silent)
             {
@@ -1311,7 +1311,7 @@ void update_SP()
             update_count();
             add_interrupt_event(SP_INT, 0/*100*/);
         }
-        //g_core->logger->info("unknown task type");
+        //g_core->log_info(L"unknown task type");
         /*if (hle) execute_dlist();
         //if (hle) processDList();
         else sp_register.halt = 0;*/
@@ -3343,23 +3343,23 @@ void read_flashram_status()
     }
     else
     {
-        g_core->logger->error("unknown read in read_flashram_status");
+        g_core->log_error(L"unknown read in read_flashram_status");
     }
 }
 
 void read_flashram_statusb()
 {
-    g_core->logger->error("read_flashram_statusb");
+    g_core->log_error(L"read_flashram_statusb");
 }
 
 void read_flashram_statush()
 {
-    g_core->logger->error("read_flashram_statush");
+    g_core->log_error(L"read_flashram_statush");
 }
 
 void read_flashram_statusd()
 {
-    g_core->logger->error("read_flashram_statusd");
+    g_core->log_error(L"read_flashram_statusd");
 }
 
 void write_flashram_dummy()
@@ -3387,23 +3387,23 @@ void write_flashram_command()
     }
     else
     {
-        g_core->logger->error("unknown write in write_flashram_command");
+        g_core->log_error(L"unknown write in write_flashram_command");
     }
 }
 
 void write_flashram_commandb()
 {
-    g_core->logger->error("write_flashram_commandb");
+    g_core->log_error(L"write_flashram_commandb");
 }
 
 void write_flashram_commandh()
 {
-    g_core->logger->error("write_flashram_commandh");
+    g_core->log_error(L"write_flashram_commandh");
 }
 
 void write_flashram_commandd()
 {
-    g_core->logger->error("write_flashram_commandd");
+    g_core->log_error(L"write_flashram_commandd");
 }
 
 static uint32_t lastwrite = 0;
@@ -3444,7 +3444,7 @@ void read_pif()
 {
 #ifdef EMU64_DEBUG
 	if ((*address_low > 0x7FF) || (*address_low < 0x7C0)) {
-		g_core->logger->info("error in reading a word in PIF");
+		g_core->log_info(L"error in reading a word in PIF");
 		*rdword = 0;
 		return;
 	}
@@ -3456,7 +3456,7 @@ void read_pifb()
 {
 #ifdef EMU64_DEBUG
 	if ((*address_low > 0x7FF) || (*address_low < 0x7C0)) {
-		g_core->logger->info("error in reading a byte in PIF");
+		g_core->log_info(L"error in reading a byte in PIF");
 		*rdword = 0;
 		return;
 	}
@@ -3468,7 +3468,7 @@ void read_pifh()
 {
 #ifdef EMU64_DEBUG
 	if ((*address_low > 0x7FF) || (*address_low < 0x7C0)) {
-		g_core->logger->info("error in reading a hword in PIF");
+		g_core->log_info(L"error in reading a hword in PIF");
 		*rdword = 0;
 		return;
 	}
@@ -3481,7 +3481,7 @@ void read_pifd()
 {
 #ifdef EMU64_DEBUG
 	if ((*address_low > 0x7FF) || (*address_low < 0x7C0)) {
-		g_core->logger->info("error in reading a double word in PIF");
+		g_core->log_info(L"error in reading a double word in PIF");
 		*rdword = 0;
 		return;
 	}
@@ -3494,7 +3494,7 @@ void write_pif()
 {
 #ifdef EMU64_DEBUG
 	if ((*address_low > 0x7FF) || (*address_low < 0x7C0)) {
-		g_core->logger->info("error in writing a word in PIF");
+		g_core->log_info(L"error in writing a word in PIF");
 		return;
 	}
 #endif
@@ -3516,7 +3516,7 @@ void write_pifb()
 {
 #ifdef EMU64_DEBUG
 	if ((*address_low > 0x7FF) || (*address_low < 0x7C0)) {
-		g_core->logger->info("error in writing a byte in PIF");
+		g_core->log_info(L"error in writing a byte in PIF");
 		return;
 	}
 #endif
@@ -3538,7 +3538,7 @@ void write_pifh()
 {
 #ifdef EMU64_DEBUG
 	if ((*address_low > 0x7FF) || (*address_low < 0x7C0)) {
-		g_core->logger->info("error in writing a hword in PIF");
+		g_core->log_info(L"error in writing a hword in PIF");
 		return;
 	}
 #endif
@@ -3561,7 +3561,7 @@ void write_pifd()
 {
 #ifdef EMU64_DEBUG
 	if ((*address_low > 0x7FF) || (*address_low < 0x7C0)) {
-		g_core->logger->info("error in writing a double word in PIF");
+		g_core->log_info(L"error in writing a double word in PIF");
 		return;
 	}
 #endif

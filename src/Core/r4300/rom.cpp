@@ -22,22 +22,22 @@ core_rom_header ROM_HEADER;
 
 void print_rom_info()
 {
-    g_core->logger->info("--- Rom Info ---");
-    g_core->logger->info("{:#06x} {:#06x} {:#06x} {:#06x}", ROM_HEADER.init_PI_BSB_DOM1_LAT_REG,
+    g_core->log_info(L"--- Rom Info ---");
+    g_core->log_info(std::format(L"{:#06x} {:#06x} {:#06x} {:#06x}", ROM_HEADER.init_PI_BSB_DOM1_LAT_REG,
            ROM_HEADER.init_PI_BSB_DOM1_PGS_REG,
            ROM_HEADER.init_PI_BSB_DOM1_PWD_REG,
-           ROM_HEADER.init_PI_BSB_DOM1_PGS_REG2);
-    g_core->logger->info("Clock rate: {:#06x}", sl((uint32_t)ROM_HEADER.ClockRate));
-    g_core->logger->info("Version: {:#06x}", sl((uint32_t)ROM_HEADER.Release));
-    g_core->logger->info("CRC: {:#06x} {:#06x}", sl((uint32_t)ROM_HEADER.CRC1), sl((uint32_t)ROM_HEADER.CRC2));
-    g_core->logger->info("Name: {}", (char*)ROM_HEADER.nom);
-    if (sl(ROM_HEADER.Manufacturer_ID) == 'N') g_core->logger->info("Manufacturer: Nintendo");
-    else g_core->logger->info("Manufacturer: {:#06x}", (uint32_t)(ROM_HEADER.Manufacturer_ID));
-    g_core->logger->info("Cartridge ID: {:#06x}", ROM_HEADER.Cartridge_ID);
-    g_core->logger->info("Size: {}", rom_size);
-    g_core->logger->info("PC: {:#06x}\n", sl((uint32_t)ROM_HEADER.PC));
-    g_core->logger->info(L"Country: {}", core_vr_country_code_to_country_name(ROM_HEADER.Country_code));
-    g_core->logger->info("----------------");
+           ROM_HEADER.init_PI_BSB_DOM1_PGS_REG2));
+    g_core->log_info(std::format(L"Clock rate: {:#06x}", sl((uint32_t)ROM_HEADER.ClockRate)));
+    g_core->log_info(std::format(L"Version: {:#06x}", sl((uint32_t)ROM_HEADER.Release)));
+    g_core->log_info(std::format(L"CRC: {:#06x} {:#06x}", sl((uint32_t)ROM_HEADER.CRC1), sl((uint32_t)ROM_HEADER.CRC2)));
+    g_core->log_info(std::format(L"Name: {}", string_to_wstring((char*)ROM_HEADER.nom)));
+    if (sl(ROM_HEADER.Manufacturer_ID) == 'N') g_core->log_info(L"Manufacturer: Nintendo");
+    else g_core->log_info(std::format(L"Manufacturer: {:#06x}", ROM_HEADER.Manufacturer_ID));
+    g_core->log_info(std::format(L"Cartridge ID: {:#06x}", ROM_HEADER.Cartridge_ID));
+    g_core->log_info(std::format(L"Size: {}", rom_size));
+    g_core->log_info(std::format(L"PC: {:#06x}\n", sl((uint32_t)ROM_HEADER.PC)));
+    g_core->log_info(std::format(L"Country: {}", core_vr_country_code_to_country_name(ROM_HEADER.Country_code)));
+    g_core->log_info(L"----------------");
 }
 
 std::wstring core_vr_country_code_to_country_name(uint16_t country_code)
@@ -142,7 +142,7 @@ bool rom_load(std::filesystem::path path)
 
     if (rom_cache.contains(path))
     {
-        g_core->logger->info("[Core] Loading cached ROM...");
+        g_core->log_info(L"[Core] Loading cached ROM...");
         g_core->rom = rom = (unsigned char*)malloc(rom_cache[path].second);
         memcpy(rom, rom_cache[path].first, rom_cache[path].second);
         return true;
@@ -192,11 +192,11 @@ bool rom_load(std::filesystem::path path)
 
     )
     {
-        g_core->logger->info("wrong file format !");
+        g_core->log_info(L"wrong file format !");
         return false;
     }
 
-    g_core->logger->info("rom loaded succesfully");
+    g_core->log_info(L"rom loaded succesfully");
 
     memcpy(&ROM_HEADER, rom, sizeof(core_rom_header));
     ROM_HEADER.unknown = 0;
@@ -242,13 +242,13 @@ bool rom_load(std::filesystem::path path)
         g_sys_type = sys_ntsc;
         break;
     default:
-        g_core->logger->error("Unknown ccode: {:#06x}", ROM_HEADER.Country_code);
+        g_core->log_error(std::format(L"Unknown ccode: {:#06x}", ROM_HEADER.Country_code));
         return false;
     }
     
     if (rom_cache.size() < g_core->cfg->rom_cache_size)
     {
-        g_core->logger->info("[Core] Putting ROM in cache... ({}/{} full)\n", rom_cache.size(), g_core->cfg->rom_cache_size);
+        g_core->log_info(std::format(L"[Core] Putting ROM in cache... ({}/{} full)\n", rom_cache.size(), g_core->cfg->rom_cache_size));
         auto data = (uint8_t*)malloc(taille);
         memcpy(data, rom, taille);
         rom_cache[path] = std::make_pair(data, taille);

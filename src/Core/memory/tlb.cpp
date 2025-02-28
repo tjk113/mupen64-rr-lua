@@ -44,71 +44,8 @@ uint32_t virtual_to_physical_address(uint32_t addresse, int32_t w)
 		if (tlb_LUT_r[addresse >> 12])
 			return (tlb_LUT_r[addresse >> 12] & 0xFFFFF000) | (addresse & 0xFFF);
 	}
-	//g_core->logger->warn("tlb exception !!! @ {:#06x}, {:#06x}, add:{:#06x}", addresse, w, interp_addr);
-	//getchar();
 	TLB_refill_exception(addresse, w);
-	//return 0x80000000;
 	return 0x00000000;
-	/*int32_t i;
-	for (i=0; i<32; i++)
-	  {
-	 if ((tlb_e[i].vpn2 & ~(tlb_e[i].mask))
-	     == ((addresse >> 13) & ~(tlb_e[i].mask)))
-	   {
-	      if (tlb_e[i].g || (tlb_e[i].asid == (EntryHi & 0xFF)))
-	        {
-	       if (addresse & tlb_e[i].check_parity_mask)
-	         {
-	            if (tlb_e[i].v_odd)
-	          {
-	             if (tlb_e[i].d_odd && w)
-	               {
-	              TLB_mod_exception();
-	              return 0;
-	               }
-	             return ((addresse & ((tlb_e[i].mask << 12)|0xFFF))
-	                 | ((tlb_e[i].pfn_odd << 12) &
-	                    ~((tlb_e[i].mask << 12)|0xFFF))
-	                 | 0x80000000);
-	          }
-	            else
-	          {
-	             TLB_invalid_exception();
-	             return 0;
-	          }
-	         }
-	       else
-	         {
-	            if (tlb_e[i].v_even)
-	          {
-	             if (tlb_e[i].d_even && w)
-	               {
-	              TLB_mod_exception();
-	              return 0;
-	               }
-	             return ((addresse & ((tlb_e[i].mask << 12)|0xFFF))
-	                 | ((tlb_e[i].pfn_even << 12) &
-	                    ~((tlb_e[i].mask << 12)|0xFFF))
-	                 | 0x80000000);
-	          }
-	            else
-	          {
-	             TLB_invalid_exception();
-	             return 0;
-	          }
-	         }
-	        }
-	      else
-	        {
-	       g_core->logger->warn("tlb refill inconnu");
-	       TLB_refill_exception(addresse,w);
-	        }
-	   }
-	  }
-	BadVAddr = addresse;
-	TLB_refill_exception(addresse,w);
-	//g_core->logger->warn("TLB refill exception");
-	return 0x80000000;*/
 }
 
 int32_t probe_nop(uint32_t address)
@@ -544,7 +481,7 @@ void ERET()
     update_count();
     if (core_Status & 0x4)
     {
-        g_core->logger->error("erreur dans ERET");
+        g_core->log_error(L"erreur dans ERET");
         stop = 1;
     }
     else

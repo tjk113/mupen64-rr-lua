@@ -75,7 +75,7 @@ void dma_pi_read()
         return;
     }
     else
-        g_core->logger->warn("unknown dma read");
+        g_core->log_warn(L"unknown dma read");
 
     pi_register.read_pi_status_reg |= 1;
     update_count();
@@ -110,7 +110,7 @@ void dma_pi_write()
         {
         }
         else
-            g_core->logger->warn("unknown dma write:{:#06x}", (int32_t)pi_register.pi_cart_addr_reg);
+            g_core->log_warn(std::format(L"unknown dma write:{:#06x}", (int32_t)pi_register.pi_cart_addr_reg));
 
         pi_register.read_pi_status_reg |= 1;
         update_count();
@@ -255,7 +255,7 @@ void dma_si_write()
     int32_t i;
     if (si_register.si_pif_addr_wr64b != 0x1FC007C0)
     {
-        g_core->logger->warn("unknown SI use");
+        g_core->log_warn(L"unknown SI use");
         stop = 1;
     }
     for (i = 0; i < (64 / 4); i++)
@@ -270,7 +270,7 @@ void dma_si_read()
     int32_t i;
     if (si_register.si_pif_addr_rd64b != 0x1FC007C0)
     {
-        g_core->logger->warn("unknown SI use");
+        g_core->log_warn(L"unknown SI use");
         stop = 1;
     }
     update_pif_read();

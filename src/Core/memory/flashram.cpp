@@ -104,7 +104,7 @@ void flashram_command(uint32_t command)
         case STATUS_MODE:
             break;
         default:
-            g_core->logger->warn("unknown flashram command with mode:{:#06x}", (int32_t)mode);
+            g_core->log_warn(std::format(L"unknown flashram command with mode:{:#06x}", (int32_t)mode));
             stop = 1;
         }
         mode = NOPES_MODE;
@@ -118,7 +118,7 @@ void flashram_command(uint32_t command)
         status = 0x11118004f0000000LL;
         break;
     default:
-        g_core->logger->warn("unknown flashram command:{:#06x}", (int32_t)command);
+        g_core->log_warn(std::format(L"unknown flashram command:{:#06x}", (int32_t)command));
     //stop=1;
     }
 }
@@ -144,7 +144,7 @@ void dma_read_flashram()
             break;
         }
     default:
-        g_core->logger->warn("unknown dma_read_flashram:{:#06x}", mode);
+        g_core->log_warn(std::format(L"unknown dma_read_flashram:{:#06x}", mode));
         stop = 1;
     }
 }
@@ -157,7 +157,7 @@ void dma_write_flashram()
         write_pointer = pi_register.pi_dram_addr_reg;
         break;
     default:
-        g_core->logger->warn("unknown dma_read_flashram:{:#06x}", mode);
+        g_core->log_warn(std::format(L"unknown dma_read_flashram:{:#06x}", mode));
         stop = 1;
     }
 }

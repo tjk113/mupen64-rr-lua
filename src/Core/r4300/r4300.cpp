@@ -18,6 +18,11 @@
 #include <r4300/timers.h>
 #include <r4300/vcr.h>
 
+#ifdef WIN32
+// VirtualAlloc
+#include <Windows.h>
+#endif
+
 std::thread emu_thread_handle;
 std::thread audio_thread_handle;
 
@@ -166,22 +171,22 @@ bool core_vr_get_launched()
 
 void NI()
 {
-    g_core->logger->error("NI() @ {:#06x}\n", (int32_t)PC->addr);
-    g_core->logger->error("opcode not implemented : ");
+    g_core->log_error(std::format(L"NI() @ {:#06x}\n", (int32_t)PC->addr));
+    g_core->log_error(L"opcode not implemented : ");
     if (PC->addr >= 0xa4000000 && PC->addr < 0xa4001000)
-        g_core->logger->info("{:#06x}:{:#06x}", (int32_t)PC->addr, (int32_t)SP_DMEM[(PC->addr - 0xa4000000) / 4]);
+        g_core->log_info(std::format(L"{:#06x}:{:#06x}", (int32_t)PC->addr, (int32_t)SP_DMEM[(PC->addr - 0xa4000000) / 4]));
     else
-        g_core->logger->info("{:#06x}:{:#06x}", (int32_t)PC->addr, (int32_t)rdram[(PC->addr - 0x80000000) / 4]);
+        g_core->log_info(std::format(L"{:#06x}:{:#06x}", (int32_t)PC->addr, (int32_t)rdram[(PC->addr - 0x80000000) / 4]));
     stop = 1;
 }
 
 void RESERVED()
 {
-    g_core->logger->info("reserved opcode : ");
+    g_core->log_info(L"reserved opcode : ");
     if (PC->addr >= 0xa4000000 && PC->addr < 0xa4001000)
-        g_core->logger->info("{:#06x}:{:#06x}", (int32_t)PC->addr, (int32_t)SP_DMEM[(PC->addr - 0xa4000000) / 4]);
+        g_core->log_info(std::format(L"{:#06x}:{:#06x}", (int32_t)PC->addr, (int32_t)SP_DMEM[(PC->addr - 0xa4000000) / 4]));
     else
-        g_core->logger->info("{:#06x}:{:#06x}", (int32_t)PC->addr, (int32_t)rdram[(PC->addr - 0x80000000) / 4]);
+        g_core->log_info(std::format(L"{:#06x}:{:#06x}", (int32_t)PC->addr, (int32_t)rdram[(PC->addr - 0x80000000) / 4]));
     stop = 1;
 }
 
@@ -1418,7 +1423,7 @@ void LD()
 void SC()
 {
     /*PC++;
-    g_core->logger->info("SC");
+    g_core->log_info(L"SC");
     if (llbit) {
        address = lsaddr;
        word = (uint32_t)(core_lsrt & 0xFFFFFFFF);
@@ -1489,7 +1494,7 @@ void NOTCOMPILED()
         {
             if ((paddr & 0x1FFFFFFF) >= 0x10000000)
             {
-                // g_core->logger->info("not compiled rom:{:#06x}", paddr);
+                // g_core->log_info(L"not compiled rom:{:#06x}", paddr);
                 recompile_block(
                 (int32_t*)rom + ((((paddr - (PC->addr - blocks[PC->addr >> 12]->start)) & 0x1FFFFFFF) - 0x10000000) >> 2),
                 blocks[PC->addr >> 12], PC->addr);
@@ -1500,7 +1505,7 @@ void NOTCOMPILED()
                 blocks[PC->addr >> 12], PC->addr);
         }
         else
-            g_core->logger->info("not compiled exception");
+            g_core->log_info(L"not compiled exception");
     }
     PC->ops();
     if (dynacore)
@@ -1559,7 +1564,7 @@ uint32_t jump_to_address;
 inline void jump_to_func()
 {
     // #ifdef _DEBUG
-    //	g_core->logger->info("dyna jump: {:#08x}", addr);
+    //	g_core->log_info(L"dyna jump: {:#08x}", addr);
     // #endif
     uint32_t paddr;
     if (skip_jump)
@@ -1612,7 +1617,7 @@ void update_count()
     {
         if (PC->addr < last_addr)
         {
-            g_core->logger->info("PC->addr < last_addr");
+            g_core->log_info(L"PC->addr < last_addr");
         }
         core_Count = core_Count + (PC->addr - last_addr) / 2;
         last_addr = PC->addr;
@@ -1642,22 +1647,15 @@ void init_blocks()
 
 void print_stop_debug()
 {
-    g_core->logger->info("PC={:#08x}:{:#08x}", (uint32_t)(PC->addr),
-                         (uint32_t)(rdram[(PC->addr & 0xFFFFFF) / 4]));
+    g_core->log_info(std::format(L"PC={:#08x}:{:#08x}", PC->addr, rdram[(PC->addr & 0xFFFFFF) / 4]));
     for (int32_t j = 0; j < 16; j++)
-        g_core->logger->info("reg[{}]:{:#08x}{:#08x}        reg[{}]:{:#08x}{:#08x}",
-                             j,
-                             (uint32_t)(reg[j] >> 32),
-                             (uint32_t)reg[j],
-                             j + 16,
-                             (uint32_t)(reg[j + 16] >> 32),
-                             (uint32_t)reg[j + 16]);
-    g_core->logger->info("hi:{:#08x}{:#08x}        lo:{:#08x}{:#08x}",
+        g_core->log_info(std::format(L"reg[{}]:{:#08x}{:#08x}        reg[{}]:{:#08x}{:#08x}", j, (uint32_t)(reg[j] >> 32), (uint32_t)reg[j], j + 16, (uint32_t)(reg[j + 16] >> 32), (uint32_t)reg[j + 16]));
+    g_core->log_info(std::format(L"hi:{:#08x}{:#08x}        lo:{:#08x}{:#08x}",
                          (uint32_t)(hi >> 32),
                          (uint32_t)hi,
                          (uint32_t)(lo >> 32),
-                         (uint32_t)lo);
-    g_core->logger->info("Executed {} ({:#08x}) instructions", debug_count, debug_count);
+                         (uint32_t)lo));
+    g_core->log_info(std::format(L"Executed {} ({:#08x}) instructions", debug_count, debug_count));
 }
 
 void core_start()
@@ -1667,7 +1665,7 @@ void core_start()
 
     j = 0;
     debug_count = 0;
-    g_core->logger->info("demarrage r4300");
+    g_core->log_info(L"demarrage r4300");
     memcpy((char*)SP_DMEM + 0x40, rom + 0x40, 0xFBC);
     delay_slot = 0;
     stop = 0;
@@ -1897,12 +1895,12 @@ void core_start()
 
     if (!dynacore)
     {
-        g_core->logger->info("interpreter");
+        g_core->log_info(L"interpreter");
         init_blocks();
         last_addr = PC->addr;
         core_executing = true;
         g_core->callbacks.core_executing_changed(core_executing);
-        g_core->logger->info(L"core_executing: {}", (bool)core_executing);
+        g_core->log_info(std::format(L"core_executing: {}", (bool)core_executing));
         while (!stop)
         {
             PC->ops();
@@ -1918,7 +1916,7 @@ void core_start()
     else
     {
         dynacore = 1;
-        g_core->logger->info("dynamic recompiler");
+        g_core->log_info(L"dynamic recompiler");
         init_blocks();
 
         auto code_addr = actual->code + (actual->block[0x40 / 4].local_addr);
@@ -1960,7 +1958,7 @@ void core_start()
 
 bool open_core_file_stream(const std::filesystem::path& path, FILE** file)
 {
-    g_core->logger->info("[Core] Opening core stream from {}...", path.string().c_str());
+    g_core->log_info(std::format(L"[Core] Opening core stream from {}...", path.wstring()));
 
     if (!exists(path))
     {
@@ -2011,7 +2009,7 @@ void clear_save_data()
 
 void audio_thread()
 {
-    g_core->logger->info("Sound thread entering...");
+    g_core->log_info(L"Sound thread entering...");
     while (true)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -2033,7 +2031,7 @@ void audio_thread()
 
         g_core->plugin_funcs.ai_update(0);
     }
-    g_core->logger->info("Sound thread exiting...");
+    g_core->log_info(L"Sound thread exiting...");
 }
 
 void emu_thread()
@@ -2056,7 +2054,7 @@ void emu_thread()
     g_core->callbacks.emu_starting_changed(false);
     g_core->callbacks.reset();
 
-    g_core->logger->info("[Core] Emu thread entry took {}ms", static_cast<int32_t>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
+    g_core->log_info(std::format(L"[Core] Emu thread entry took {}ms", static_cast<int32_t>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000)));
     core_start();
 
     st_on_core_stop();
@@ -2100,7 +2098,7 @@ core_result vr_close_rom_impl(bool stop_vcr)
 
     g_core->callbacks.emu_stopping();
 
-    g_core->logger->info("[Core] Stopping emulation thread...");
+    g_core->log_info(L"[Core] Stopping emulation thread...");
 
     // we signal the core to stop, then wait until thread exits
     terminate_emu();
@@ -2129,7 +2127,7 @@ core_result vr_start_rom_impl(std::filesystem::path path)
         auto result = vr_close_rom_impl(true);
         if (result != Res_Ok)
         {
-            g_core->logger->info("[Core] Failed to close rom before starting rom.");
+            g_core->log_info(L"[Core] Failed to close rom before starting rom.");
             return result;
         }
     }
@@ -2183,7 +2181,7 @@ core_result vr_start_rom_impl(std::filesystem::path path)
 
     core_vr_on_speed_modifier_changed();
 
-    g_core->logger->info("[Core] vr_start_rom entry took {}ms", static_cast<int32_t>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000));
+    g_core->log_info(std::format(L"[Core] vr_start_rom entry took {}ms", static_cast<int32_t>((std::chrono::high_resolution_clock::now() - start_time).count() / 1'000'000)));
 
     emu_paused = false;
     emu_launched = true;
@@ -2208,7 +2206,7 @@ core_result core_vr_start_rom(std::filesystem::path path, bool wait)
     std::unique_lock lock(g_emu_cs, std::try_to_lock);
     if (!lock.owns_lock())
     {
-        g_core->logger->warn("[Core] vr_start_rom busy!");
+        g_core->log_warn(L"[Core] vr_start_rom busy!");
         return VR_Busy;
     }
 
@@ -2226,7 +2224,7 @@ core_result core_vr_close_rom(bool stop_vcr, bool wait)
     std::unique_lock lock(g_emu_cs, std::try_to_lock);
     if (!lock.owns_lock())
     {
-        g_core->logger->warn("[Core] vr_close_rom busy!");
+        g_core->log_warn(L"[Core] vr_close_rom busy!");
         return VR_Busy;
     }
 
@@ -2244,7 +2242,7 @@ core_result vr_reset_rom_impl(bool reset_save_data, bool stop_vcr, bool skip_res
     const auto task = core_vcr_get_task();
     if (g_core->cfg->is_reset_recording_enabled && !skip_reset_recording_check && task == task_recording)
     {
-        g_core->logger->trace("{} Reset during recording, handing off to VCR", __func__);
+        g_core->log_trace(L"vr_reset_rom_impl Reset during recording, handing off to VCR");
         vcr_reset_requested = true;
         return Res_Ok;
     }
@@ -2328,7 +2326,7 @@ core_result core_vr_reset_rom(bool reset_save_data, bool stop_vcr, bool wait)
     std::unique_lock lock(g_emu_cs, std::try_to_lock);
     if (!lock.owns_lock())
     {
-        g_core->logger->info("[Core] vr_reset_rom busy!");
+        g_core->log_info(L"[Core] vr_reset_rom busy!");
         return VR_Busy;
     }
 

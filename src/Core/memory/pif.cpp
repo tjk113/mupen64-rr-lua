@@ -22,7 +22,7 @@ void print_pif()
 {
     int32_t i;
     for (i = 0; i < (64 / 8); i++)
-        g_core->logger->info("{:#06x} {:#06x} {:#06x} {:#06x} | {:#06x} {:#06x} {:#06x} {:#06x}",
+        g_core->log_info(L"{:#06x} {:#06x} {:#06x} {:#06x} | {:#06x} {:#06x} {:#06x} {:#06x}",
                             PIF_RAMb[i * 8 + 0], PIF_RAMb[i * 8 + 1], PIF_RAMb[i * 8 + 2], PIF_RAMb[i * 8 + 3],
                             PIF_RAMb[i * 8 + 4], PIF_RAMb[i * 8 + 5], PIF_RAMb[i * 8 + 6], PIF_RAMb[i * 8 + 7]);
     // getchar();
@@ -72,7 +72,7 @@ void EepromCommand(uint8_t* Command)
         }
         break;
     default:
-        g_core->logger->warn("unknown command in EepromCommand : {:#06x}", Command[2]);
+        g_core->log_warn(std::format(L"unknown command in EepromCommand : {:#06x}", Command[2]));
     }
 }
 
@@ -285,13 +285,13 @@ void update_pif_write()
     int32_t i = 0, channel = 0;
     /*#ifdef DEBUG_PIF
         if (input_delay) {
-            g_core->logger->info("------------- write -------------");
+            g_core->log_info(L"------------- write -------------");
         }
         else {
-            g_core->logger->info("---------- before write ---------");
+            g_core->log_info(L"---------- before write ---------");
         }
         print_pif();
-        g_core->logger->info("---------------------------------");
+        g_core->log_info(L"---------------------------------");
     #endif*/
     if (PIF_RAMb[0x3F] > 1)
     {
@@ -306,17 +306,17 @@ void update_pif_write()
                     return;
                 }
             }
-            g_core->logger->info("unknown pif2 code:");
+            g_core->log_info(L"unknown pif2 code:");
             for (i = (64 - 2 * 8) / 8; i < (64 / 8); i++)
-                g_core->logger->info("{:#06x} {:#06x} {:#06x} {:#06x} | {:#06x} {:#06x} {:#06x} {:#06x}",
-                                    PIF_RAMb[i * 8 + 0], PIF_RAMb[i * 8 + 1], PIF_RAMb[i * 8 + 2], PIF_RAMb[i * 8 + 3],
-                                    PIF_RAMb[i * 8 + 4], PIF_RAMb[i * 8 + 5], PIF_RAMb[i * 8 + 6], PIF_RAMb[i * 8 + 7]);
+            {
+                g_core->log_info(std::format(L"{:#06x} {:#06x} {:#06x} {:#06x} | {:#06x} {:#06x} {:#06x} {:#06x}", PIF_RAMb[i * 8 + 0], PIF_RAMb[i * 8 + 1], PIF_RAMb[i * 8 + 2], PIF_RAMb[i * 8 + 3], PIF_RAMb[i * 8 + 4], PIF_RAMb[i * 8 + 5], PIF_RAMb[i * 8 + 6], PIF_RAMb[i * 8 + 7]));
+            }
             break;
         case 0x08:
             PIF_RAMb[0x3F] = 0;
             break;
         default:
-            g_core->logger->info("error in update_pif_write : {:#06x}", PIF_RAMb[0x3F]);
+            g_core->log_info(std::format(L"error in update_pif_write : {:#06x}", PIF_RAMb[0x3F]));
         }
         return;
     }
@@ -345,7 +345,7 @@ void update_pif_write()
                 else if (channel == 4)
                     EepromCommand(&PIF_RAMb[i]);
                 else
-                    g_core->logger->info("channel >= 4 in update_pif_write");
+                    g_core->log_info(L"channel >= 4 in update_pif_write");
                 i += PIF_RAMb[i] + (PIF_RAMb[(i + 1)] & 0x3F) + 1;
                 channel++;
             }
@@ -358,11 +358,11 @@ void update_pif_write()
     g_core->plugin_funcs.controller_command(-1, NULL);
     /*#ifdef DEBUG_PIF
         if (!one_frame_delay) {
-            g_core->logger->info("---------- after write ----------");
+            g_core->log_info(L"---------- after write ----------");
         }
         print_pif();
         if (!one_frame_delay) {
-            g_core->logger->info("---------------------------------");
+            g_core->log_info(L"---------------------------------");
         }
     #endif*/
 }
@@ -370,14 +370,14 @@ void update_pif_write()
 
 void update_pif_read()
 {
-    // g_core->logger->info("pif entry");
+    // g_core->log_info(L"pif entry");
     int32_t i = 0, channel = 0;
     bool once = emu_paused || (frame_advance_outstanding > 0) || g_wait_counter; // used to pause only once during controller routine
     bool stAllowed = true; // used to disallow .st being loaded after any controller has already been read
 #ifdef DEBUG_PIF
-    g_core->logger->info("---------- before read ----------");
+    g_core->log_info(L"---------- before read ----------");
     print_pif();
-    g_core->logger->info("---------------------------------");
+    g_core->log_info(L"---------------------------------");
 #endif
     while (i < 0x40)
     {
@@ -452,7 +452,7 @@ void update_pif_read()
                     if (g_st_old)
                     {
                         // if old savestate, don't fetch controller (matches old behaviour), makes delay fix not work for that st but syncs all m64s
-                        g_core->logger->info("old st detected");
+                        g_core->log_info(L"old st detected");
                         g_st_old = false;
                         return;
                     }
@@ -482,9 +482,9 @@ void update_pif_read()
     g_core->plugin_funcs.read_controller(-1, NULL);
 
 #ifdef DEBUG_PIF
-    g_core->logger->info("---------- after read -----------");
+    g_core->log_info(L"---------- after read -----------");
     print_pif();
-    g_core->logger->info("---------------------------------");
+    g_core->log_info(L"---------------------------------");
 #endif
-    // g_core->logger->info("pif exit");
+    // g_core->log_info(L"pif exit");
 }

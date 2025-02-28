@@ -295,7 +295,7 @@ void C_SF_S()
     if (check_cop1_unusable()) return;
     if (isnan(*reg_cop1_simple[core_cffs]) || isnan(*reg_cop1_simple[core_cfft]))
     {
-        g_core->logger->error("Invalid operation exception in C opcode");
+        g_core->log_error(L"Invalid operation exception in C opcode");
         stop = 1;
     }
     FCR31 &= ~0x800000;
@@ -307,7 +307,7 @@ void C_NGLE_S()
     if (check_cop1_unusable()) return;
     if (isnan(*reg_cop1_simple[core_cffs]) || isnan(*reg_cop1_simple[core_cfft]))
     {
-        g_core->logger->error("Invalid operation exception in C opcode");
+        g_core->log_error(L"Invalid operation exception in C opcode");
         stop = 1;
     }
     FCR31 &= ~0x800000;
@@ -319,7 +319,7 @@ void C_SEQ_S()
     if (check_cop1_unusable()) return;
     if (isnan(*reg_cop1_simple[core_cffs]) || isnan(*reg_cop1_simple[core_cfft]))
     {
-        g_core->logger->error("Invalid operation exception in C opcode");
+        g_core->log_error(L"Invalid operation exception in C opcode");
         stop = 1;
     }
     if (*reg_cop1_simple[core_cffs] == *reg_cop1_simple[core_cfft])
@@ -333,7 +333,7 @@ void C_NGL_S()
     if (check_cop1_unusable()) return;
     if (isnan(*reg_cop1_simple[core_cffs]) || isnan(*reg_cop1_simple[core_cfft]))
     {
-        g_core->logger->error("Invalid operation exception in C opcode");
+        g_core->log_error(L"Invalid operation exception in C opcode");
         stop = 1;
     }
     if (*reg_cop1_simple[core_cffs] == *reg_cop1_simple[core_cfft])
@@ -347,7 +347,7 @@ void C_LT_S()
     if (check_cop1_unusable()) return;
     if (isnan(*reg_cop1_simple[core_cffs]) || isnan(*reg_cop1_simple[core_cfft]))
     {
-        g_core->logger->error("Invalid operation exception in C opcode");
+        g_core->log_error(L"Invalid operation exception in C opcode");
         stop = 1;
     }
     if (*reg_cop1_simple[core_cffs] < *reg_cop1_simple[core_cfft])
@@ -361,7 +361,7 @@ void C_NGE_S()
     if (check_cop1_unusable()) return;
     if (isnan(*reg_cop1_simple[core_cffs]) || isnan(*reg_cop1_simple[core_cfft]))
     {
-        g_core->logger->error("Invalid operation exception in C opcode");
+        g_core->log_error(L"Invalid operation exception in C opcode");
         stop = 1;
     }
     if (*reg_cop1_simple[core_cffs] < *reg_cop1_simple[core_cfft])
@@ -375,7 +375,7 @@ void C_LE_S()
     if (check_cop1_unusable()) return;
     if (isnan(*reg_cop1_simple[core_cffs]) || isnan(*reg_cop1_simple[core_cfft]))
     {
-        g_core->logger->info("Invalid operation exception in C opcode");
+        g_core->log_info(L"Invalid operation exception in C opcode");
         stop = 1;
     }
     if (*reg_cop1_simple[core_cffs] <= *reg_cop1_simple[core_cfft])
@@ -389,7 +389,7 @@ void C_NGT_S()
     if (check_cop1_unusable()) return;
     if (isnan(*reg_cop1_simple[core_cffs]) || isnan(*reg_cop1_simple[core_cfft]))
     {
-        g_core->logger->info("Invalid operation exception in C opcode");
+        g_core->log_info(L"Invalid operation exception in C opcode");
         stop = 1;
     }
     if (*reg_cop1_simple[core_cffs] <= *reg_cop1_simple[core_cfft])

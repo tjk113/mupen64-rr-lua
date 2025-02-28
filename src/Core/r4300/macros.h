@@ -58,7 +58,7 @@
 #define check_PC \
 if (PC->addr == actual->fin) \
 { \
-g_core->logger->error("changement de block"); \
+g_core->log_error(L"changement de block"); \
 stop=1; \
 }
 

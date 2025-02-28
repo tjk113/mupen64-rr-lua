@@ -2152,7 +2152,6 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     g_view_logger->info(get_mupen_name());
 
     g_core.cfg = &g_config.core;
-    g_core.logger = g_core_logger.get();
     g_core.callbacks = {};
     g_core.callbacks.vi = [] {
         LuaService::call_interval();
@@ -2226,6 +2225,18 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
     };
     g_core.callbacks.seek_status_changed = []() {
         Messenger::broadcast(Messenger::Message::SeekStatusChanged, nullptr);
+    };
+    g_core.log_trace = [](const auto& str) {
+        g_core_logger->trace(str);
+    };
+    g_core.log_info = [](const auto& str) {
+        g_core_logger->info(str);
+    };
+    g_core.log_warn = [](const auto& str) {
+        g_core_logger->warn(str);
+    };
+    g_core.log_error = [](const auto& str) {
+        g_core_logger->error(str);
     };
     g_core.load_plugins = load_plugins;
     g_core.initiate_plugins = initiate_plugins;
