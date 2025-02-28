@@ -13,6 +13,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * \brief Describes a controller.
  */
@@ -330,4 +334,8 @@ EXPORT void InitiateRSP(core_rsp_info Rsp_Info, uint32_t* CycleCount);
 
 // ReSharper restore CppInconsistentNaming
 
+#endif
+
+#ifdef __cplusplus
+}
 #endif
